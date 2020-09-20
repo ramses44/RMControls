@@ -3,7 +3,7 @@ from django.db import models
 # Дополнить потом!!!
 UNITS = [
     "м",
-    "м2",
+    "м²",
     "шт",
     "комп.",
     "лист",
@@ -11,7 +11,6 @@ UNITS = [
 
 
 class Provider(models.Model):
-
     title = models.CharField("Название поставщика", max_length=20)
 
     def __str__(self):
@@ -33,6 +32,7 @@ class Folder(models.Model):
         current = self
         while current.parent:
             path.append(current.title)
+        path.append(current.title)
 
         return "/".join(path[::-1])
 
@@ -51,7 +51,13 @@ class AbsMaterial(models.Model):
     picture_url = models.TextField("URL изображения", null=True, blank=True)
 
     def __str__(self):
-        return self.title
+        path = []
+        current = self
+        while current.parent:
+            path.append(current.title)
+        path.append(current.title)
+
+        return "/".join(path[::-1])
 
     class Meta:
         verbose_name = "Материал"
@@ -94,7 +100,6 @@ class Material(models.Model):
         verbose_name = "Материал"
         verbose_name_plural = "Склад"
         db_table = "stock"
-
 
 
 

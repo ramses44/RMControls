@@ -1,0 +1,89 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+
+    {% load static %}
+    <script>
+        function expand(num) {
+            try {
+                document.getElementsByClassName("collapse show")[0].className = "collapse";
+                let b = document.getElementsByClassName("btn btn-link btn-lg")[0];
+                if (b.id !== "btn" + num.toString())
+                    b.className = "btn btn-light btn-lg";
+            }
+            catch (e) { }
+            if (document.getElementById("btn" + num.toString()).className === "btn btn-light btn-lg") {
+                document.getElementById("btn" + num.toString()).className = "btn btn-link btn-lg";
+                document.getElementById("div" + num.toString()).className = "collapse show";
+            }
+            else {
+                document.getElementById("btn" + num.toString()).className = "btn btn-light btn-lg";
+                document.getElementById("div" + num.toString()).className = "collapse";
+            }
+        }
+    </script>
+
+    <div class="container">
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+
+                {% for f in path %}
+                    {% if forloop.last %}
+                        <li class="breadcrumb-item active" aria-current="page">{{ f.0 }}</li>
+                    {% else %}
+                        <li class="breadcrumb-item"><a href="/catalog/{{ f.1 }}">{{ f.0 }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+            </ol>
+        </nav>
+
+        <div class="row">
+            {% for folder in root.folder_set.all %}
+                <button style="width: 150px" id="btn{{ forloop.counter0 }}" onclick="expand({{ forloop.counter0 }})" class="btn btn-light btn-lg">
+                    <img src="{% static 'img/folder.png' %}" width="20" height="20"/>
+                    {{ folder.title }}</button>
+                <div style="width: 5px"></div>
+            {% endfor %}
+
+            {% for mat in root.absmaterial_set.all %}
+                <button style="width: 150px" onclick="window.location = '/add-to-stock/{{ mat.id }}'"  class="btn btn-light btn-lg">
+                    <img src="{% if mat.picture_url %} {{ mat.picture_url }} {% else %} {% static 'img/material.png' %} {% endif %}" width="20" height="20"/>
+                    {{ mat.title }}</button>
+                <div style="width: 5px"></div>
+            {% endfor %}
+        </div>
+        {% for folder in root.folder_set.all %}
+            <div id="div{{ forloop.counter0 }}" class="collapse">
+                <div class="card card-body" style="width: 500px">
+                    {% for elem in folder.folder_set.all %}
+{#                        <button type="button" class="btn btn-light" onclick="window.location = '/catalog/{{ elem.id }}'">{{ elem.title }}</button> <br>#}
+                        <div class="shadow-sm p-sm-2 mb-1 bg-white rounded">
+                            <img src="{% static 'img/folder.png' %}" width="50" height="50"/>
+                            <a href="/catalog/{{ elem.id }}"> <big><u>{{ elem.title }}</u></big> </a>
+                        </div>
+                    {% endfor %}
+
+                    {% for elem in folder.absmaterial_set.all %}
+                        <div class="shadow-sm p-sm-2 mb-1 bg-white rounded">
+    {#                        <button type="button" class="btn btn-light" onclick="window.location = '/add-to-stock/{{ elem.id }}'">{{ elem.title }}</button> <br>#}
+                            <img src="{% if elem.picture_url %} {{ elem.picture_url }} {% else %} {% static 'img/material.png' %} {% endif %}" width="50" height="50"/>
+                            <a href="/add-to-stock/{{ elem.id }}"> <big><u>{{ elem.title }}</u></big> </a>
+                        </div>
+                    {% endfor %}
+                    <div class="shadow-sm p-sm-2 mb-1 bg-white rounded">
+                        <img src="{% static 'img/add.png' %}" width="50" height="50"/>
+                        <a href="#" onclick="window.open('/add-folder/{{ folder.id }}', 'hello', 'width=720,height=480,left=100,top=100,location=false')"> <big><u>Добавить папку</u></big> </a>
+                    </div>
+                    <div class="shadow-sm p-sm-2 mb-1 bg-white rounded">
+                        <img src="{% static 'img/add.png' %}" width="50" height="50"/>
+                        <a href="#" onclick="window.open('/add-material/{{ folder.id }}', 'hello', 'width=720,height=480,left=100,top=100,location=false')"> <big><u>Добавить материал</u></big> </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+    </div>
+
+{% endblock %}
