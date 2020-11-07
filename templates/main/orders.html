@@ -1,0 +1,53 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row">
+            <h2 style="margin-bottom: 20px; margin-right: 20px; margin-left: 20px">{{ title }}</h2>
+            <img src="{% static 'img/filter.png' %}" width="20" height="20" alt="Filter"
+                 style="margin-top: 15px; margin-right: 15px; cursor: pointer"
+                 onclick="let q = document.getElementById('filters'); q.hidden = !q.hidden;">
+            <div class="row" id="filters" style="margin-top: 5px" hidden>
+                <div style="width: 50px"></div>
+                <div class="input-group mb-3" style="width: 400px">
+                    <div class="input-group-prepend">
+                        <label class="input-group-text" for="status_filter">Статус</label>
+                    </div>
+                    <select class="form-control" id="status_filter" onchange="filter()">
+                        <option value="" selected>Любой</option>
+                        <option value="0">Ожидаются материалы</option>
+                        <option value="1">В производстве</option>
+                        <option value="2">Выполнен</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <ul>
+            {% for ord in orders %}
+                <li>
+                    <label hidden>{{ ord.status }}</label>
+                    <a role="link" href="/order/{{ ord.id }}">№{{ ord.id }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script>
+        function filter() {
+            let all_orders = document.getElementsByTagName('li');
+
+            for (let i = 0; i < all_orders.length; i++)
+                all_orders[i].hidden = false;
+
+            let status = document.getElementById('status_filter').value;
+            if (status)
+                for (let i = 0; i < all_orders.length; i ++)
+                    if (all_orders[i].firstElementChild.textContent !== status)
+                        all_orders[i].hidden = true;
+        }
+    </script>
+
+{% endblock %}

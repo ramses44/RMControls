@@ -1,0 +1,49 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container">
+        <h2 style="margin-bottom: 20px">{{ title }}<a class="badge badge-link"
+                                                      href="/edit-order/{{ order.id }}{% if additional %}/1{% endif %}">&#128393</a>
+        </h2>
+
+        <label>Заказчик: <label style="color: gray">{{ order.client }}</label></label> <br>
+        <label>Описание: <label style="color: gray; width: auto">{{ order.description }}</label></label> <br>
+        <label>Дата приёма: <label style="color: gray">{{ order.order_date }}</label></label> <br>
+        <label>Дата исполнения: <label style="color: gray">{{ order.prod_date }}</label></label> <br>
+
+        <h6>Материалы</h6>
+        <ul>
+            {% for elem in order.material_set.all %}
+                <li>
+                    <label>{{ elem.material.title }} - {{ elem.count }} {{ elem.material.units }}</label>
+                    <label style="color: gray">({{ elem.details }})</label>
+                </li>
+            {% endfor %}
+        </ul>
+        <label>Стоимость материалов: <label style="color: gray">{{ cost }} ₽</label></label>
+
+    </div>
+
+    <script>
+        function restore(el_id) {
+            let exp = document.getElementById("expanded" + el_id);
+            exp.children[0].hidden = false;
+            exp.children[1].hidden = false;
+            exp.children[2].hidden = true;
+        }
+
+        function edit(el_id) {
+            let sel = document.getElementById("select" + el_id);
+            let nid = sel.options[sel.options.selectedIndex].value;
+
+            let exp = document.getElementById("expanded" + el_id);
+            exp.children[0].hidden = true;
+            exp.children[1].hidden = true;
+            exp.children[2].hidden = false;
+            exp.children[2].src = "/stock/edit/" + el_id + "/" + nid;
+        }
+    </script>
+
+{% endblock %}

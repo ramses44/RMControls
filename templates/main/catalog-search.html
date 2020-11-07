@@ -25,29 +25,15 @@
     <div class="container">
 
         <div class="input-group mb-3">
-            <input type="text" class="form-control" placeholder="Поиск..." aria-label="Поиск..." id="search">
+            <input type="text" class="form-control" placeholder="Поиск..." aria-label="Поиск..." id="search" value="{{ text }}">
             <div class="input-group-append">
                 <button class="btn btn-outline-secondary" type="button" onclick="search()">&#128269</button>
             </div>
         </div>
 
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-
-                {% for f in path %}
-                    {% if forloop.last %}
-                        <li class="breadcrumb-item active" aria-current="page">{{ f.0 }}</li>
-                    {% else %}
-                        <li class="breadcrumb-item"><a href="/catalog/{{ f.1 }}">{{ f.0 }}</a></li>
-                    {% endif %}
-                {% endfor %}
-
-            </ol>
-        </nav>
-
         <div class="row">
             <div class="col-md-auto" id="btns">
-                {% for folder in root.folder_set.all %}
+                {% for folder in folders %}
                     <button oncontextmenu="actions({{ folder.id }}, '{{ folder.title }}', 'folder', 'btn{{ forloop.counter0 }}'); return false"
                             style="width: 250px; margin-bottom: 5px; text-align: left" id="btn{{ forloop.counter0 }}"
                             onclick="expand({{ forloop.counter0 }})" class="btn btn-light btn-lg">
@@ -55,7 +41,7 @@
                         {{ folder.title }}</button> <br>
                 {% endfor %}
 
-                {% for mat in root.absmaterial_set.all %}
+                {% for mat in materials %}
                     <button oncontextmenu="actions({{ mat.id }}, '{{ mat.title }}', 'material', 'mbtn{{ forloop.counter0 }}'); return false"
                             id="mbtn{{ forloop.counter0 }}" style="width: 250px; margin-bottom: 5px; text-align: left"
                             onclick="add_to_stock({{ mat.id }}, '{{ mat.title }}')" class="btn btn-light btn-lg">
@@ -63,28 +49,13 @@
                              width="20" height="20"/>
                         {{ mat.title }}</button> <br>
                 {% endfor %}
-
-                {% if user.is_superuser %}
-                    <button style="width: 250px; margin-bottom: 5px; text-align: left" class="btn btn-light btn-lg"
-                            onclick="add_form({{ root.id }}, 'folder')">
-                        <img src="{% static 'img/add.png' %}" width="20" height="20"/>
-                        Добавить папку
-                    </button> <br>
-
-                    <button style="width: 250px; margin-bottom: 5px; text-align: left" class="btn btn-light btn-lg"
-                            onclick="add_form({{ root.id }}, 'material')">
-                        <img src="{% static 'img/add.png' %}" width="20" height="20"/>
-                        Добавить материал
-                    </button>
-                {% endif %}
             </div>
 
             <div class="col-md-auto">
-                {% for folder in root.folder_set.all %}
+                {% for folder in folders %}
                     <div id="div{{ forloop.counter0 }}" class="collapse">
                         <div class="card card-body" style="width: 400px">
                             {% for elem in folder.folder_set.all %}
-                                {#                        <button type="button" class="btn btn-light" onclick="window.location = '/catalog/{{ elem.id }}'">{{ elem.title }}</button> <br>#}
                                 <div class="shadow-sm p-sm-2 mb-1 bg-white rounded" id="cfolder{{ forloop.counter0 }}"
                                      oncontextmenu="actions({{ elem.id }}, '{{ elem.title }}', 'folder', 'cfolder{{ forloop.counter0 }}'); return false">
                                     <img style="float: left;" src="{% static 'img/folder.png' %}" width="50"

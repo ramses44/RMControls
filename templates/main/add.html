@@ -1,34 +1,39 @@
 {% extends 'main/base.html' %}
 
 {% block content %}
+    {% load static %}
 
-    <h2>Добавить {% if type == 'folder' %}папку{% else %}материал{% endif %}</h2>
+    <h2>{{ title }}</h2>
     <br>
 
-    {% if message.0 == 'success'%}
+    <div hidden id="status">{{ result }}</div>
+    
+    {% if result == 'success'%}
         <div class="alert alert-success" role="alert">
-            {{ message.1 }}
+            {% if 'папку' in title %}
+                Папка успешно сохранена
+            {% else %}
+                Данные о материале успешно сохранены
+            {% endif %}
         </div>
-    {% elif message.0 == 'error' %}
+    {% elif result == 'error' %}
         <div class="alert alert-danger" role="alert">
-            {{ message.1 }}
+            Ошибка отправки формы!
         </div>
     {% endif %}
 
     <form method="post">
         {% csrf_token %}
         <div class="form-group">
-            <label>Название</label>
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text">
-                        {% for f in path %}{{ f.0 }}/{% endfor %}
-                    </span>
-                </div>
-                {{ form.title }}
-            </div>
+            <label>Путь</label>
+            <input class="form-control" style="width: 358px" readonly placeholder="{% for f in path %}{{ f.0 }}/{% endfor %}">
         </div>
-        {% if title == 'Добавить материал' %}
+
+        <div class="form-group">
+            <label>Название</label>
+            {{ form.title }}
+        </div>
+        {% if 'материал' in title %}
             <div class="form-group">
                 <label>{{ form.provider.label }}</label>
                 {{ form.provider }}
@@ -46,7 +51,7 @@
 
         {% endif %}
 
-        <button type="submit" class="btn btn-outline-success">Добавить</button>
+        <button type="submit" class="btn btn-outline-success">Сохранить</button>
     </form>
 
 {% endblock %}

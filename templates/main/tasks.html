@@ -1,0 +1,267 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+    <script>
+        window.remainders = {};
+        window.remainders_prices = {};
+
+        function refresh_selection() {
+            $.ajax('/api/get-order-list', {
+                type: 'get',
+                success: function (req) {
+                    let sel = document.getElementById('for_order');
+                    while (sel.children.length > 1) sel.lastChild.remove()
+                    let opt;
+                    for (let i = 0; i < req.data.length; i++) {
+                        opt = document.createElement('option');
+                        opt.value = req.data[i];
+                        opt.innerText = '№ ' + req.data[i].toString();
+                        sel.appendChild(opt);
+                    }
+                }
+            })
+        }
+
+        function refresh_remainders(mid) {
+            let curr;
+            curr = document.getElementsByClassName('remainder' + mid.toString());
+
+            for (let i = 0; i < curr.length; i++) {
+                curr[i].innerText = window.remainders[mid].toString();
+            }
+        }
+
+        function calculate_cost() {
+            let cost = 0, cost2 = 0, id_, rem;
+
+            let checkboxes = document.getElementsByClassName('checkbox');
+            for (let i = 0; i < checkboxes.length; i++) {
+                id_ = checkboxes[i].id.slice(11);
+                if (checkboxes[i].checked) {
+                    cost2 += parseFloat(document.getElementById('count_' + id_).value) * parseFloat(document.getElementById('price_' + id_).value)
+                    cost += parseFloat(document.getElementById('count_' + id_).placeholder) * parseFloat(document.getElementById('price_' + id_).value)
+
+                    rem = document.getElementById('rem' + id_);
+                    if (rem && rem.className[0] === 'u')
+                        cost += parseFloat(rem.innerText) * window.remainders_prices[parseInt(rem.className.slice(10))]
+                }
+
+                document.getElementById('cost').innerText = cost.toString();
+                document.getElementById('cost2').innerText = cost2.toString();
+            }
+
+        }
+    </script>
+
+    <div class="container" onmousemove="calculate_cost()" onclick="calculate_cost()">
+        <h2 style="margin-bottom: 20px">{{ title }}</h2>
+        <table class="table table-hover" style="background-color: azure">
+            <thead class="thead-light">
+            <tr>
+                <th scope="col" style="text-align: center">&#10003</th>
+                <th scope="col" style="text-align: center">Материал</th>
+                <th scope="col" style="text-align: center">Нужно</th>
+                <th scope="col" style="text-align: center">Заказывается</th>
+                <th scope="col" style="text-align: center">Цена</th>
+                <th scope="col" style="text-align: center">Остатки</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for elem in tasks %}
+                <script>
+                    {% if elem.material.get_remainder %}
+                        window.remainders[{{ elem.material_id }}] = {{ elem.material.get_remainder.count }};
+                        window.remainders_prices[{{ elem.material_id }}] = {{ elem.material.get_remainder.price }};
+                    {% endif %}
+                </script>
+                <tr>
+                    <th scope="row">
+                        <label>
+                            <big><big><big><input type="checkbox" style="width: 1.25rem; height: 1.25rem;"
+                                                  id="do_include_{{ elem.id }}" class="checkbox"></big></big></big>
+                        </label>
+                    </th>
+                    <td>
+                        <img style="float: left; margin-right: 15px"
+                             src="{% if elem.material.picture_url %} {{ elem.material.picture_url }} {% else %} {% static 'img/material.png' %} {% endif %}"
+                             width="50" height="50" alt="missed img"/>
+                        <a title="{{ elem.material.title }}"
+                           style="color: black; width: 300px"><big>{{ elem.material.title }}</big></a> <br>
+                    </td>
+                    <td>
+                        <label>
+                            <input class="form-control" style="width: 100px" readonly type="number"
+                                   placeholder="{{ elem.count }}" id="need_{{ elem.id }}">
+                        </label>
+                    </td>
+                    <td>
+                        <label>
+                            <input class="form-control" style="width: 100px" type="number" min="0" id="count_{{ elem.id }}"
+                                   placeholder="{{ elem.count }}">
+                        </label>
+                    </td>
+                    <td>
+                        <label>
+                            <input class="form-control" style="width: 230px" type="number" id="price_{{ elem.id }}" min="0"
+                                   placeholder="Последняя: {{ elem.material.get_last_price }} ₽/{{ elem.material.units }}">
+                        </label>
+                    </td>
+                    <td>
+                        {% if elem.material.get_remainder %}
+                            <label style="text-align: center">
+                                <input type="checkbox" id="do_use_remainder_{{ elem.id }}"
+                                       onchange="remainder('{{ elem.id }}')">
+                                Использовать остаток <label class="remainder{{ elem.material_id }}"
+                                                            id="rem{{ elem.id }}"></label> {{ elem.material.units }}
+                                <script> refresh_remainders({{ elem.material_id }}) </script>
+                                <a hidden id="rem_price_{{ elem.material_id }}">{{ elem }}</a>
+                            </label>
+                        {% else %}
+                            <p style="text-align: center">---</p>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="container">
+        <hr>
+        <div class="row">
+            <div class="col-md-auto" id="after">
+                <div class="form-group">
+                    <label for="for_order"> Для заказа</label>
+                    <div class="input-group mb-3">
+                        <select class="form-control" id="for_order" style="width: 400px" onchange="order_info()">
+                            <option value selected>None</option>
+                        </select>
+                        <div class="input-group-append" onclick="add_order()" style="cursor: pointer"><span
+                                class="input-group-text">+</span></div>
+                    </div>
+                </div>
+                <script> refresh_selection() </script>
+                <label for="details">Детали (примечания)</label>
+                <textarea class="form-control" id="details"></textarea>
+                <br>
+                <big><p style="color: gray">Заказ: <label id="cost">0</label>₽</p></big>
+                <big><p style="color: gray">Всего: <label id="cost2">0</label>₽</p></big>
+                <button class="btn btn-outline-success" id="btn" onclick="ordered()">&#10003 Заказано</button>
+                <br>
+                <div style="height: 25px"></div>
+            </div>
+
+            <div class="col-md-auto">
+                <div class="card card-body" id="additional" hidden>
+                    <div class="container">
+                        <div style="float: right; cursor: pointer;"
+                             onclick="document.getElementById('additional').hidden = true">✖
+                        </div>
+                    </div>
+                    <iframe id="iframe" frameborder="false" scrolling="no" width="600px" height="630px"
+                            onload="refresh_selection()"></iframe>
+                    <iframe id="iframe2" frameborder="false" scrolling="no" width="600px" height="630px"
+                            hidden></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function remainder(eid, t) {
+            let curr;
+            if (document.getElementById('rem' + eid).className[0] !== 'u') {
+                let need, rem;
+                need = parseFloat(document.getElementById('need_' + eid).placeholder);
+                rem = parseFloat(document.getElementById('rem' + eid).innerText);
+                let used = need > rem ? rem : need;
+
+                curr = document.getElementById('count_' + eid);
+                curr.placeholder = (parseFloat(curr.placeholder) - used).toString();
+
+                curr = document.getElementById('rem' + eid);
+                let mid = parseInt(curr.className.slice(9));
+                curr.className = 'uremainder' + mid.toString();
+                curr.innerText = used.toString();
+
+                window.remainders[mid] -= used;
+
+                refresh_remainders(mid);
+            } else {
+                curr = document.getElementById('rem' + eid);
+                let mid = parseInt(curr.className.slice(10));
+                curr.className = 'remainder' + mid.toString();
+                let used = parseFloat(curr.innerText);
+
+                window.remainders[mid] += used;
+
+                curr = document.getElementById('count_' + eid);
+                curr.placeholder = document.getElementById('need_' + eid).placeholder;
+
+                refresh_remainders(mid);
+            }
+        }
+
+        function add_order() {
+            document.getElementById('additional').hidden = false;
+            document.getElementById('iframe').hidden = false;
+            document.getElementById('iframe2').hidden = true;
+            document.getElementById('iframe').src = '/create-order/1';
+        }
+
+        function order_info(oid) {
+            oid = document.getElementById('for_order').value;
+            if (!oid)
+                document.getElementById('additional').hidden = true;
+            else {
+                document.getElementById('additional').hidden = false;
+                document.getElementById('iframe').hidden = true;
+                document.getElementById('iframe2').hidden = false;
+                document.getElementById('iframe2').src = '/order/' + oid + '/1';
+            }
+        }
+
+        function check_required() {
+            let checkboxes = document.getElementsByClassName('checkbox');
+            let id_;
+            for (let i = 0; i < checkboxes.length; i++)
+                if (checkboxes[i].checked) {
+                    id_ = checkboxes[i].id.slice(11);
+                    if (!document.getElementById('count_' + id_).value || !document.getElementById('price_' + id_).value)
+                        return false;
+                }
+            return true;
+        }
+
+        function ordered() {
+            if (!check_required()) {
+                let mess = document.createElement('div');
+                mess.className = 'alert alert-danger';
+                mess.innerText = 'Заполните все нужные поля!'
+                document.getElementById('after').insertBefore(mess, document.getElementById('btn'))
+            }
+            let id_;
+            let checkboxes = document.getElementsByClassName('checkbox');
+            for (let i = 0; i < checkboxes.length; i++)
+                if (checkboxes[i].checked) {
+                    id_ = checkboxes[i].id.slice(11);
+                    let data = {
+                            count: document.getElementById('count_' + id_).value,
+                            remainder_used: document.getElementById('rem' + id_) ? document.getElementById('rem' + id_).innerText : 0,
+                            for_order: document.getElementById('for_order').value,
+                            price: document.getElementById('price_' + id_).value,
+                            details: document.getElementById('details').value
+                        }
+                    $.get('/add-to-stock/' + id_, data, function () { }, 'jsonp')
+                    let mess = document.createElement('div');
+                    mess.className = 'alert alert-success';
+                    mess.innerText = 'Материалы добавлены на склад со статусом /"Ожидание/"'
+                    document.getElementById('after').appendChild(mess)
+                }
+        }
+    </script>
+
+{% endblock %}

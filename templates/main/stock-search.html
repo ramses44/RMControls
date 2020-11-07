@@ -1,0 +1,220 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <style>
+        .my-dropdown {
+            width: 30px;
+            height: 90px;
+            background: #e1e1e1;
+            position: absolute;
+            border-radius: 5px;
+        }
+
+        .my-dropdown:after {
+            content: "";
+            width: 0;
+            height: 0;
+            position: absolute;
+            top: 40%;
+            left: -60%;
+            border-top: 9px solid transparent;
+            border-right: 18px solid #e1e1e1;
+            border-bottom: 9px solid transparent;
+        }
+    </style>
+
+    <div class="container">
+        <div class="row">
+            <h2 style="margin-bottom: 20px; margin-right: 20px; margin-left: 20px">Склад</h2>
+            <img src="{% static 'img/filter.png' %}" width="20" height="20" alt="Filter"
+                 style="margin-top: 15px; margin-right: 15px; cursor: pointer"
+                 onclick="let q = document.getElementById('filters'); q.hidden = !q.hidden;">
+            <div class="row" id="filters" style="margin-top: 5px" hidden>
+                <div class="input-group mb-3" style="width: 400px; margin-left: 50px">
+                    <div class="input-group-prepend">
+                        <label class="input-group-text" for="for_order_filter">Для закза</label>
+                    </div>
+                    <select class="form-control" id="for_order_filter" onchange="filter()">
+                        <option value="" selected>Все</option>
+                    </select>
+                </div>
+                <div style="width: 50px"></div>
+                <div class="input-group mb-3" style="width: 400px">
+                    <div class="input-group-prepend">
+                        <label class="input-group-text" for="status_filter">Статус</label>
+                    </div>
+                    <select class="form-control" id="status_filter" onchange="filter()">
+                        <option value="" selected>Любой</option>
+                        <option value="На складе">На складе</option>
+                        <option value="Ожидается">Ожидается</option>
+                        <option value="В производстве">В производстве</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="Поиск..." aria-label="Поиск..." id="search" value="{{ text }}">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="button" onclick="search()">&#128269</button>
+            </div>
+        </div>
+
+        <table class="table table-hover" style="background-color: azure">
+            <thead class="thead-light">
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col" style="padding-left: 80px">Материал</th>
+                <th scope="col" style="text-align: center">Кол-во</th>
+                <th scope="col" style="text-align: center">Для заказа</th>
+                <th scope="col" style="text-align: center">Статус</th>
+                {% if user.is_authenticated %}<th scope="col"> </th>{% endif %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for elem in stock %}
+                <tr id="tr{{ elem.id }}"
+                    aria-expanded="true" aria-controls="collapse{{ elem.id }}">
+                    <th scope="row" style="line-height: 3em;">{{ elem.id }}</th>
+                    <td>
+                        <div style="color: gray; white-space: nowrap; width: 600px; overflow: hidden; text-overflow: ellipsis;">
+                            <img style="float: left; margin-right: 15px"
+                                 src="{% if elem.material.picture_url %} {{ elem.material.picture_url }} {% else %} {% static 'img/material.png' %} {% endif %}"
+                                 width="50" height="50"/>
+                            <a title="{{ elem.material.title }}"
+                               style="color: black; width: 300px"><big>{{ elem.material.title }}</big></a> <br>
+                            <a title="{{ elem.details }}">{% if elem.details %}{{ elem.details }}{% endif %}</a>
+                        </div>
+                    </td>
+                    <td style="line-height: 3em; text-align: center">{{ elem.count }} {{ elem.material.units }}</td>
+                    <td style="text-align: center">
+                        {% if elem.for_order_id %}<a class="for_order" id="fo{{ elem.id }}" href="/order/{{ elem.for_order_id }}" style="line-height: 3em;">№
+                            {{ elem.for_order_id }}{% else %}<a class="for_order" id="fo{{ elem.id }}" style="line-height: 3em;"> - {% endif %}</a>
+                    </td>
+                    <td style="line-height: 3em; text-align: center" id="s{{ elem.id }}">{{ elem.get_status_display }}</td>
+                    {% if user.is_authenticated %}
+                        <td style="text-align: center; padding-top: 17px">
+                            <button class="btn btn-light" style="background-color: aliceblue" onmouseenter="document.getElementById('opts{{ elem.id }}').hidden = false" onmouseleave="document.getElementById('opts{{ elem.id }}').hidden = true">
+                                ⋮
+                            <a class="my-dropdown" style="margin-left: 32px; margin-top: -56px" id="opts{{ elem.id }}" hidden>
+                                <div style="margin-left: 2px">
+                                    <div style="height: 3px"></div>
+                                    <img src="{% static 'img/check.png' %}" alt="check.png" class="btn-light" height="22" width="22" style="background-color: #e1e1e1; opacity: 0.7" onclick="$.get('/stock/confirm/{{ elem.id }}')">
+                                    <div style="height: 3px"></div>
+                                    <img src="{% static 'img/cross.png' %}" alt="cross.png" class="btn-light" height="22" width="22" style="background-color: #e1e1e1; opacity: 0.7" onclick="$.get('/stock/delete/{{ elem.id }}')">
+                                    <div style="height: 3px"></div>
+                                    <img src="{% static 'img/pencil.png' %}" alt="pencil.png" class="btn-light" height="22" width="22" style="background-color: #e1e1e1; opacity: 0.7" onclick="restore('{{ elem.id }}')" data-toggle="collapse" data-target="#collapse{{ elem.id }}">
+                                    <div style="height: 3px"></div>
+                                </div>
+                            </a>
+                            </button>
+                        </td>
+                    {% endif %}
+                </tr>
+                <tr style="background-color: aliceblue">
+                    <td colspan="5" id="collapse{{ elem.id }}" class="collapse">
+                        <div class="container">
+                            <div style="float: right; cursor: pointer" data-toggle="collapse"
+                                 data-target="#collapse{{ elem.id }}" aria-expanded="true"
+                                 aria-controls="collapse{{ elem.id }}">✖
+                            </div>
+                        </div>
+                        <div class="container" id="expanded{{ elem.id }}">
+                            <label for="select{{ elem.id }}">Материал</label>
+                            <div class="input-group">
+                                <select class="form-control" id="select{{ elem.id }}"
+                                        style="background-color: aliceblue">
+                                    {% for el in all %}
+                                        <option value="{{ el.id }}"
+                                                {% if el.id == elem.material.id %}selected="selected"{% endif %}>{{ el.title }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div style="width: 5px;"></div>
+                                <button class="btn btn-outline-secondary" onclick="edit('{{ elem.id }}')">Далее</button>
+                            </div>
+                            <iframe frameborder="false" scrolling="no" width="90%" height="550px" hidden></iframe>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+
+        function init_filters() {
+            let ords = document.getElementsByClassName('for_order');
+            let ff = [];
+            for (let i = 0; i < ords.length; i++) {
+                if (!ff.includes(ords[i].innerText))
+                    ff.push(ords[i].innerText);
+            }
+            let sel = document.getElementById('for_order_filter');
+            let opt;
+            for (let i = 0; i < ff.length; i++) {
+                opt = document.createElement('option');
+                opt.value = opt.textContent = ff[i];
+                sel.options.add(opt);
+            }
+        }
+
+        init_filters();
+
+        function restore(el_id) {
+            let exp = document.getElementById("expanded" + el_id);
+            exp.children[0].hidden = false;
+            exp.children[1].hidden = false;
+            exp.children[2].hidden = true;
+        }
+
+        function edit(el_id) {
+            let sel = document.getElementById("select" + el_id);
+            let nid = sel.options[sel.options.selectedIndex].value;
+
+            let exp = document.getElementById("expanded" + el_id);
+            exp.children[0].hidden = true;
+            exp.children[1].hidden = true;
+            exp.children[2].hidden = false;
+            exp.children[2].src = "/stock/edit/" + el_id + "/" + nid;
+        }
+
+        function filter() {
+            let all_rows = Array.from(document.getElementsByTagName('tr')).slice(1);
+
+            for (let i = 0; i < all_rows.length; i++)
+                if (i % 2)
+                    all_rows[i].children[0].className = 'collapse';
+                else
+                    all_rows[i].hidden = false;
+
+            let for_order = document.getElementById('for_order_filter').value;
+            if (for_order)
+                for (let i = 0; i < all_rows.length; i += 2)
+                    if (document.getElementById('fo' + all_rows[i].id.slice(2)).innerText !== for_order)
+                        all_rows[i].hidden = true;
+
+            let status = document.getElementById('status_filter').value;
+            if (status)
+                for (let i = 0; i < all_rows.length; i += 2)
+                    if (document.getElementById('s' + all_rows[i].id.slice(2)).innerText !== status)
+                        all_rows[i].hidden = true;
+        }
+
+        function search() {
+            let text = document.getElementById('search').value;
+            window.location = text ? ('/stock/search/' + text) : '/stock';
+        }
+
+        (function () {
+            document.getElementById('search').addEventListener('keydown', function (e) {
+                if (e.keyCode === 13) {
+                    search();
+                }
+            });
+        })();
+    </script>
+
+{% endblock %}

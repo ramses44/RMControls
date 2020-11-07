@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 # Дополнить потом!!!
 UNITS = [
@@ -42,6 +43,25 @@ class Folder(models.Model):
         db_table = "folders"
 
 
+class Material(models.Model):
+
+    material = models.ForeignKey('AbsMaterial', models.PROTECT, verbose_name="Материал")
+    count = models.FloatField("Кол-во")
+    for_order = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Для заказа")
+    status = models.IntegerField("Статус",
+                                 choices=[(0, "Ожидается"), (1, "На складе"), (2, "В производстве")], default=0)
+    details = models.CharField("Детали", blank=True, null=True, max_length=100)
+    price = models.FloatField("Цена", blank=True, null=True)
+
+    def __str__(self):
+        return self.material.title + " - " + str(self.count) + self.material.units
+
+    class Meta:
+        verbose_name = "Материал"
+        verbose_name_plural = "Склад"
+        db_table = "stock"
+
+
 class AbsMaterial(models.Model):
 
     title = models.CharField("Наименование", max_length=20)
@@ -59,6 +79,14 @@ class AbsMaterial(models.Model):
 
         return "/".join(path[::-1])
 
+    def get_last_price(self):
+        last = Material.objects.filter(material_id=self.id).last()
+        return last.price if last else None
+
+    def get_remainder(self) -> Material:
+        free = Material.objects.filter(material=self, for_order__isnull=True)
+        return free[0] if free else None
+
     class Meta:
         verbose_name = "Материал"
         verbose_name_plural = "Материалы"
@@ -69,12 +97,13 @@ class Order(models.Model):
 
     description = models.CharField("Описание", max_length=50)
     client = models.CharField("Заказчик", max_length=50)
-    order_date = models.DateField("Дата приёма")
+    order_date = models.DateField("Дата приёма", default=timezone.now().date())
     status = models.IntegerField("Статус", default=0, choices=[
         (0, "Ожидаются материалы"),
         (1, "В производстве"),
         (2, "Заказ выполнен")
     ])
+    prod_date = models.DateField("Дата исполнения", blank=True, null=True)
 
     def __str__(self):
         return self.description
@@ -85,22 +114,34 @@ class Order(models.Model):
         db_table = "orders"
 
 
-class Material(models.Model):
+class Task(models.Model):
 
     material = models.ForeignKey(AbsMaterial, models.PROTECT, verbose_name="Материал")
     count = models.FloatField("Кол-во")
-    for_order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Для заказа")
-    status = models.IntegerField("Статус", choices=[(0, "Ожидается"), (1, "В производстве"), (2, "На складе")])
+
+    def __str__(self):
+        return self.material.title + " - " + str(self.count) + self.material.units + " - Task"
+
+    class Meta:
+        verbose_name = "Материал"
+        verbose_name_plural = "Для нового заказа"
+        db_table = "tasks"
+
+
+class CompletedMaterial(models.Model):
+
+    material = models.ForeignKey('AbsMaterial', models.PROTECT, verbose_name="Материал")
+    count = models.FloatField("Кол-во")
+    for_order = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Для заказа")
     details = models.CharField("Детали", blank=True, null=True, max_length=100)
+    price = models.FloatField("Цена", blank=True, null=True)
 
     def __str__(self):
         return self.material.title + " - " + str(self.count) + self.material.units
 
     class Meta:
         verbose_name = "Материал"
-        verbose_name_plural = "Склад"
-        db_table = "stock"
-
-
+        verbose_name_plural = "Завершённые"
+        db_table = "completed"
 
 

@@ -1,0 +1,119 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row">
+            <h2 style="margin-bottom: 20px; margin-right: 20px; margin-left: 20px">Архив материалов - стр. {{ page }}</h2>
+            <img src="{% static 'img/filter.png' %}" width="20" height="20" alt="Filter"
+                 style="margin-top: 15px; margin-right: 15px; cursor: pointer"
+                 onclick="let q = document.getElementById('filters'); q.hidden = !q.hidden;">
+            <div class="row" id="filters" style="margin-top: 5px" hidden>
+                <div class="input-group mb-3" style="width: 400px; margin-left: 50px">
+                    <div class="input-group-prepend">
+                        <label class="input-group-text" for="for_order_filter">Для закза</label>
+                    </div>
+                    <select class="form-control" id="for_order_filter" onchange="filter()">
+                        <option value="" selected>Все</option>
+                        {% for opt in orders %}
+                            <option value="{{ opt.id }}" {% if opt.id == for_order %}selected{% endif %}>№{{ opt.id }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="Поиск..." aria-label="Поиск..." id="search">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="button" onclick="search()">&#128269</button>
+            </div>
+        </div>
+
+        <table class="table table-hover" style="background-color: azure">
+            <thead class="thead-light">
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col" style="padding-left: 80px">Материал</th>
+                <th scope="col" style="text-align: center">Цена</th>
+                <th scope="col" style="text-align: center">Кол-во</th>
+                <th scope="col" style="text-align: center">Для заказа</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for elem in materials %}
+                <tr id="tr{{ elem.id }}"
+                    aria-expanded="true" aria-controls="collapse{{ elem.id }}">
+                    <th scope="row" style="line-height: 3em;">{{ elem.id }}</th>
+                    <td>
+                        <div style="color: gray; white-space: nowrap; width: 600px; overflow: hidden; text-overflow: ellipsis;">
+                            <img style="float: left; margin-right: 15px"
+                                 src="{% if elem.material.picture_url %} {{ elem.material.picture_url }} {% else %} {% static 'img/material.png' %} {% endif %}"
+                                 width="50" height="50"/>
+                            <a title="{{ elem.material.title }}"
+                               style="color: black; width: 300px"><big>{{ elem.material.title }}</big></a> <br>
+                            <a title="{{ elem.details }}">{% if elem.details %}{{ elem.details }}{% endif %}</a>
+                        </div>
+                    </td>
+                    <td style="line-height: 3em; color: gray; text-align: center">{{ elem.price }} ₽/{{ elem.material.units }}</td>
+                    <td style="line-height: 3em; text-align: center">{{ elem.count }} {{ elem.material.units }}</td>
+                    <td style="text-align: center">
+                        {% if elem.for_order_id %}<a class="for_order" id="fo{{ elem.id }}" href="/order/{{ elem.for_order_id }}" style="line-height: 3em;">№
+                            {{ elem.for_order_id }}{% else %}<a class="for_order" id="fo{{ elem.id }}" style="line-height: 3em;"> - {% endif %}</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <br>
+
+        <div class="container row">
+            <style>
+                .my-btn {
+                    margin-right: 10px;
+                    width: 40px;
+                    height: 40px;
+                }
+            </style>
+            {% if page > 1 %}
+                <a class="btn btn-outline-secondary my-btn" href="/archive/{{ page|add:-1 }}"><</a>
+                <a class="btn btn-outline-secondary my-btn" href="/archive/{{ page|add:-1 }}">{{ page|add:-1 }}</a>
+            {% endif %}
+            <a class="btn btn-outline-secondary my-btn disabled" href="/archive/{{ page }}">{{ page }}</a>
+            {% if not is_last %}
+                <a class="btn btn-outline-secondary my-btn disabled" href="/archive/{{ page }}">...</a>
+                <a class="btn btn-outline-secondary my-btn" href="/archive/{{ page|add:+1 }}">{{ page|add:+1 }}</a>
+                <a class="btn btn-outline-secondary my-btn" href="/archive/{{ page|add:+1 }}">></a>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <script>
+
+        function filter() {
+            let for_order = document.getElementById('for_order_filter').value;
+
+            if (for_order)
+                window.location = '/archive/1/' + for_order
+            else
+                window.location = '/archive/1'
+        }
+
+        function search() {
+            let text = document.getElementById('search').value;
+            window.location = text ? ('/archive/search/' + text + '/1') : '/archive/1'
+
+        }
+
+        (function () {
+            document.getElementById('search').addEventListener('keydown', function (e) {
+                if (e.keyCode === 13) {
+                    search();
+                }
+            });
+        })();
+    </script>
+
+{% endblock %}

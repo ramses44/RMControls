@@ -1,0 +1,68 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+
+    <h2>{{ title }}</h2>
+    <br>
+
+    {% if result == 'success'%}
+        <div class="alert alert-success" role="alert">Материал успешно добавлен!</div>
+    {% elif result == 'error' %}
+        <div class="alert alert-danger" role="alert">Ошибка отправки формы!</div>
+    {% endif %}
+
+    <form method="post">
+        {% if remainder %}
+            <div class="alert alert-warning" role="alert">
+                Внимание! На складе есть свободный остаток ({{ remainder.0 }} {{ remainder.1 }})
+                <div class="form-check">
+                    {{ form.do_use_remainder }}
+                    <label class="form-check-label" for="DoUseRemainder">
+                        Добавить остаток со склада
+                    </label>
+                </div>
+            </div>
+        {% endif %}
+
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Для заказа</label>
+            {{ form.for_order }}
+        </div>
+        <div class="form-group">
+            <label>Нужно</label>
+            <div class="input-group mb-3">
+                {{ form.need }}
+                <div class="input-group-append">
+                    <span class="input-group-text">{{ units }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Заказывается</label>
+            <div class="input-group mb-3">
+                {{ form.ordering }}
+                <div class="input-group-append">
+                    <span class="input-group-text">{{ units }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Примечания</label>
+            {{ form.description }}
+        </div>
+
+        <div class="form-group">
+            <label>{{ form.price.label }} <label style="color: gray">(последняя цена: {{ last_price }} ₽/{{ units }})</label></label>
+            <div class="input-group mb-3">
+                {{ form.price }}
+                <div class="input-group-append">
+                    <span class="input-group-text">₽/{{ units }}</span>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-outline-success">Сохранить</button>
+    </form>
+
+{% endblock %}

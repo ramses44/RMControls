@@ -123,3 +123,4 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 BASE_URL = 'http://192.168.0.100:25565'
+LOGIN_REDIRECT_URL = '/'

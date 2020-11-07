@@ -1,0 +1,52 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+    {% load static %}
+
+    <div class="container">
+
+        <h2>{{ title }}</h2>
+        <br>
+
+        {% if result == 'success'%}
+            <div class="alert alert-success" role="alert">Изменения в заказе <a href="/order/{{ addit }}{% if additional %}1{% endif %}" class="alert-link">№{{ addit }}</a> сохранены!</div>
+        {% elif result == 'error' %}
+            <div class="alert alert-danger" role="alert">
+                Ошибка отправки формы!
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group" hidden>
+                <label>{{ form.number.label }}</label>
+                {{ form.number }}
+            </div>
+
+            <div class="form-group">
+                <label>Заказчик</label>
+                {{ form.client }}
+            </div>
+
+            <div class="form-group">
+                <label>Описание заказа</label>
+                {{ form.description }}
+            </div>
+
+            <div class="form-group">
+                <label>Дата приёма заказа</label>
+                {{ form.date }}
+            </div>
+
+            <div class="form-group">
+                <label>Дата исполнения заказа</label>
+                {{ form.prod_date }}
+            </div>
+
+            <button type="submit" class="btn btn-outline-success">Сохранить</button>
+
+        </form>
+    </div>
+
+{% endblock %}
