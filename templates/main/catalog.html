@@ -227,11 +227,48 @@
                     cont.appendChild(count);
                     count.className = 'input-group mb-3';
                     count.innerHTML = "<input class=\"form-control\" id=\"count_value\"> <div class=\"input-group-append\"><span class=\"input-group-text\">" + units + "</span></div>";
+
+                    let price_l = document.createElement('label');
+                    cont.appendChild(price_l);
+                    price_l.innerText = 'Цена';
+
+                    let price = document.createElement('div');
+                    cont.appendChild(price);
+                    price.className = 'input-group mb-3';
+                    price.innerHTML = "<input class=\"form-control\" id=\"price\"> <div class=\"input-group-append\"><span class=\"input-group-text\">₽/" + units + "</span></div>";
+
+                    let for_order_l = document.createElement('label');
+                    cont.appendChild(for_order_l);
+                    for_order_l.innerText = 'Для заказа';
+
+                    let for_order = document.createElement('div');
+                    cont.appendChild(for_order);
+                    for_order.className = 'input-group mb-3';
+                    for_order.innerHTML = "<select class=\"form-control\" id=\"for_order\"><option value selected>None</option></select>";
+
+                    $.ajax('/api/get-order-list', {
+                        type: 'get',
+                        success: function (req) {
+                            let sel = document.getElementById('for_order');
+                            while (sel.children.length > 1) sel.lastChild.remove()
+                            let opt;
+                            for (let i = 0; i < req.data.length; i++) {
+                                opt = document.createElement('option');
+                                opt.value = req.data[i];
+                                opt.innerText = '№ ' + req.data[i].toString();
+                                sel.appendChild(opt);
+                            }
+                        }
+                    });
+
                     let btn1 = document.createElement('button');
                     btn1.className = 'btn btn-outline-primary';
                     btn1.innerText = 'Добавить';
                     btn1.onclick = function () {
-                        $.ajax('/add-task/' + mid.toString() + '/' + document.getElementById('count_value').value, {
+                        let count = document.getElementById('count_value').value;
+                        let price = document.getElementById('price').value;
+                        let fo = document.getElementById('for_order').value;
+                        $.ajax('/add-task/' + mid.toString() + '/' + (count ? count : 0) + '/' + (price ? price : 0) + '/' + (fo ? fo : 0), {
                             type: 'get',
                             success: function () {
                                 let mess = document.createElement('div');

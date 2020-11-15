@@ -17,8 +17,8 @@
         <ul>
             {% for elem in order.material_set.all %}
                 <li>
-                    <label>{{ elem.material.title }} - {{ elem.count }} {{ elem.material.units }}</label>
-                    <label style="color: gray">({{ elem.details }})</label>
+                    <label>{{ elem.material.title }} - {{ elem.count|floatformat:2 }} {{ elem.material.units }}</label>
+                    <label style="color: gray">{% if elem.details %}({{ elem.details }}){% endif %} - {{ elem.get_status_display }}</label>
                 </li>
             {% endfor %}
         </ul>

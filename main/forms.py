@@ -1,6 +1,6 @@
 from django.forms import Form, CharField, TextInput, ChoiceField, Select, URLField, \
     URLInput, FloatField, Textarea, BooleanField, CheckboxInput, DateField, DateInput, IntegerField
-from .models import Provider, UNITS, Order, AbsMaterial
+from .models import UNITS, Order, AbsMaterial
 
 
 class AddFolder(Form):
@@ -17,10 +17,6 @@ class AddMaterial(Form):
         'placeholder': 'Введите название Материала',
         'id': 'title',
     }))
-
-    provider = ChoiceField(widget=Select({
-        'class': 'form-control',
-    }), choices=map(lambda x: (x.id, x.title,), Provider.objects.all()), label="Поставщик")
 
     units = ChoiceField(widget=Select({
         'class': 'form-control',

@@ -56,8 +56,8 @@
                             <a title="{{ elem.details }}">{% if elem.details %}{{ elem.details }}{% endif %}</a>
                         </div>
                     </td>
-                    <td style="line-height: 3em; color: gray; text-align: center">{{ elem.price }} ₽/{{ elem.material.units }}</td>
-                    <td style="line-height: 3em; text-align: center">{{ elem.count }} {{ elem.material.units }}</td>
+                    <td style="line-height: 3em; color: gray; text-align: center">{{ elem.price|floatformat:2 }} ₽/{{ elem.material.units }}</td>
+                    <td style="line-height: 3em; text-align: center">{{ elem.count|floatformat:2 }} {{ elem.material.units }}</td>
                     <td style="text-align: center">
                         {% if elem.for_order_id %}<a class="for_order" id="fo{{ elem.id }}" href="/order/{{ elem.for_order_id }}" style="line-height: 3em;">№
                             {{ elem.for_order_id }}{% else %}<a class="for_order" id="fo{{ elem.id }}" style="line-height: 3em;"> - {% endif %}</a>

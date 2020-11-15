@@ -11,18 +11,6 @@ UNITS = [
 ]
 
 
-class Provider(models.Model):
-    title = models.CharField("Название поставщика", max_length=20)
-
-    def __str__(self):
-        return self.title
-
-    class Meta:
-        verbose_name = "Поставщик"
-        verbose_name_plural = "Поставщики"
-        db_table = "providers"
-
-
 class Folder(models.Model):
 
     title = models.CharField("Имя", max_length=20)
@@ -49,7 +37,8 @@ class Material(models.Model):
     count = models.FloatField("Кол-во")
     for_order = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Для заказа")
     status = models.IntegerField("Статус",
-                                 choices=[(0, "Ожидается"), (1, "На складе"), (2, "В производстве")], default=0)
+                                 choices=[(-1, "Не заказано"), (0, "Ожидается"), (1, "На складе"),
+                                          (2, "В производстве"), (3, "Реализовано")], default=0)
     details = models.CharField("Детали", blank=True, null=True, max_length=100)
     price = models.FloatField("Цена", blank=True, null=True)
 
@@ -65,7 +54,6 @@ class Material(models.Model):
 class AbsMaterial(models.Model):
 
     title = models.CharField("Наименование", max_length=20)
-    provider = models.ForeignKey(Provider, models.CASCADE, verbose_name="Поставщик")
     units = models.CharField("Единицы измерения", choices=map(lambda x: (x, x, ), UNITS), max_length=10, default="шт")
     parent = models.ForeignKey(Folder, models.CASCADE, null=True, verbose_name="Папка")
     picture_url = models.TextField("URL изображения", null=True, blank=True)
@@ -80,7 +68,7 @@ class AbsMaterial(models.Model):
         return "/".join(path[::-1])
 
     def get_last_price(self):
-        last = Material.objects.filter(material_id=self.id).last()
+        last = Material.objects.filter(material_id=self.id, price__isnull=False).last()
         return last.price if last else None
 
     def get_remainder(self) -> Material:
@@ -112,36 +100,5 @@ class Order(models.Model):
         verbose_name = "Заказ"
         verbose_name_plural = "Заказы"
         db_table = "orders"
-
-
-class Task(models.Model):
-
-    material = models.ForeignKey(AbsMaterial, models.PROTECT, verbose_name="Материал")
-    count = models.FloatField("Кол-во")
-
-    def __str__(self):
-        return self.material.title + " - " + str(self.count) + self.material.units + " - Task"
-
-    class Meta:
-        verbose_name = "Материал"
-        verbose_name_plural = "Для нового заказа"
-        db_table = "tasks"
-
-
-class CompletedMaterial(models.Model):
-
-    material = models.ForeignKey('AbsMaterial', models.PROTECT, verbose_name="Материал")
-    count = models.FloatField("Кол-во")
-    for_order = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Для заказа")
-    details = models.CharField("Детали", blank=True, null=True, max_length=100)
-    price = models.FloatField("Цена", blank=True, null=True)
-
-    def __str__(self):
-        return self.material.title + " - " + str(self.count) + self.material.units
-
-    class Meta:
-        verbose_name = "Материал"
-        verbose_name_plural = "Завершённые"
-        db_table = "completed"
 
 

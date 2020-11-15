@@ -59,7 +59,7 @@
 
     <div class="container" onmousemove="calculate_cost()" onclick="calculate_cost()">
         <div class="row">
-            <h2 style="margin-bottom: 20px; margin-right: 20px; margin-left: 20px">{{ title }}</h2>
+            <h2 style="margin-bottom: 20px; margin-right: 20px; margin-left: 20px">Формирование заказа</h2>
             <img src="{% static 'img/filter.png' %}" width="20" height="20" alt="Filter"
                  style="margin-top: 15px; margin-right: 15px; cursor: pointer"
                  onclick="let q = document.getElementById('filters'); q.hidden = !q.hidden;">
@@ -71,7 +71,8 @@
                     <select class="form-control" id="for_order_filter" onchange="filter()">
                         <option value="" selected>Все</option>
                         {% for opt in orders %}
-                            <option value="{{ opt.id }}" {% if opt.id == for_order %}selected{% endif %}>№{{ opt.id }}</option>
+                            <option value="{{ opt.id }}" {% if opt.id == for_order %}selected{% endif %}>
+                                №{{ opt.id }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -79,7 +80,8 @@
         </div>
 
         <div class="input-group mb-3">
-            <input type="text" class="form-control" placeholder="Поиск..." aria-label="Поиск..." id="search">
+            <input type="text" class="form-control" placeholder="Поиск..." aria-label="Поиск..." id="search"
+                   value="{{ text }}">
             <div class="input-group-append">
                 <button class="btn btn-outline-secondary" type="button" onclick="search()">&#128269</button>
             </div>
@@ -117,7 +119,8 @@
                              width="50" height="50" alt="missed img"/>
                         <a title="{{ elem.material.title }}"
                            style="color: black; width: 300px"><big>{{ elem.material.title }}</big></a> <br>
-                        <a style="color: gray" title="№{{ elem.for_order_id }}">{% if elem.for_order_id %}Для заказа №{{ elem.for_order_id }}{% endif %}</a>
+                        <a style="color: gray" title="№{{ elem.for_order_id }}">{% if elem.for_order_id %}Для заказа №
+                            {{ elem.for_order_id }}{% endif %}</a>
                     </td>
                     <td>
                         <label>
@@ -127,7 +130,8 @@
                     </td>
                     <td>
                         <label>
-                            <input class="form-control" style="width: 100px" type="number" step="0.1" min="0" id="count_{{ elem.id }}"
+                            <input class="form-control" style="width: 100px" type="number" step="0.1" min="0"
+                                   id="count_{{ elem.id }}"
                                    value="{{ elem.count|floatformat:2 }}" placeholder="{{ elem.count|floatformat:2 }}">
                         </label>
                     </td>
@@ -212,12 +216,12 @@
                 let used = need > rem ? rem : need;
 
                 curr = document.getElementById('count_' + eid);
-                curr.placeholder = (parseFloat(curr.placeholder) - used).toFixed(2);
+                curr.placeholder = (parseFloat(curr.placeholder) - used).toString();
 
                 curr = document.getElementById('rem' + eid);
                 let mid = parseInt(curr.className.slice(9));
                 curr.className = 'uremainder' + mid.toString();
-                curr.innerText = used.toFixed(2);
+                curr.innerText = used.toString();
 
                 window.remainders[mid] -= used;
 
@@ -293,8 +297,8 @@
 
             let mess = document.createElement('div');
             mess.className = 'alert alert-success';
-            document.getElementById('after').appendChild(mess)
             mess.innerText = 'Материалы добавлены со статусом "Ожидание"'
+            document.getElementById('after').appendChild(mess)
         }
 
         function filter() {
@@ -305,7 +309,7 @@
 
             let for_order = document.getElementById('for_order_filter').value;
             if (for_order)
-                for (let i = 0; i < all_rows.length; i ++)
+                for (let i = 0; i < all_rows.length; i++)
                     if (all_rows[i].className.slice(13) !== for_order)
                         all_rows[i].hidden = true;
         }

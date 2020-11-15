@@ -71,11 +71,11 @@ def add_remainder(mid, count, price):
     mid, count, price = int(mid), float(count), float(price)
     try:
         mat = Material.objects.get(material_id=mid, for_order__isnull=True)
-        mat.price = (mat.price * mat.count + count * price) / (mat.count + count)
-        mat.count += count
+        mat.price = round((mat.price * mat.count + count * price) / (mat.count + count), 2)
+        mat.count += round(count, 2)
 
     except ObjectDoesNotExist:
-        mat = Material(material_id=mid, count=count, for_order=None, details='Остаток', price=price)
+        mat = Material(material_id=mid, count=round(count, 2), for_order=None, details='Остаток', price=round(price, 2))
 
     mat.save()
 
@@ -124,7 +124,6 @@ def add_material(request, parent):
             f = AbsMaterial()
             f.title = form.data['title']
             f.units = form.data['units']
-            f.provider_id = form.data['provider']
             if form.data['url']:
                 f.picture_url = form.data['url']
             f.parent_id = parent
@@ -204,7 +203,6 @@ def edit_material(request, mid):
         if form.is_valid():
             mat.title = form.data['title']
             mat.units = form.data['units']
-            mat.provider_id = form.data['provider']
             if form.data['url']:
                 mat.picture_url = form.data['url']
             mat.save()
@@ -215,7 +213,6 @@ def edit_material(request, mid):
         form = AddMaterial({
             'title': mat.title,
             'units': mat.units,
-            'provider': mat.provider_id,
             'url': mat.picture_url
         })
 
@@ -231,29 +228,30 @@ def edit_material(request, mid):
 
 
 def stock(request):
-    mats = Material.objects.all()
+    mats = Material.objects.filter(status__in=(0, 1, 2))
     return render(request, 'main/stock.html', context={
         'stock': mats, 'title': 'Склад', 'all': AbsMaterial.objects.all()})
 
 
 def add_to_stock(request, mid):
-    task = Task.objects.get(id=mid)
+    task = Material.objects.get(id=mid)
     if request.GET['for_order']:
         free = float(request.GET['count']) + float(request.GET['remainder_used']) - task.count
         mat = Material(material_id=task.material_id,
-                       count=task.count - float(request.GET['remainder_used']) if free > 0 else float(
-                           request.GET['count']),
+                       count=round(task.count - float(request.GET['remainder_used']) - float(
+                           request.GET['count']) if free > 0 else float(
+                           request.GET['count']) + float(request.GET['remainder_used']), 2),
                        for_order_id=int(request.GET['for_order']),
                        details=request.GET['details'],
-                       price=float(request.GET['price']))
+                       price=round(float(request.GET['price']), 2))
         mat.save()
     else:
         task.count = 0
-        free = float(request.GET['count'])
+        free = round(float(request.GET['count']) - float(request.GET['remainder_used']), 2)
 
     if request.GET['remainder_used'] != '0':
         rem = task.material.get_remainder()
-        rem.count -= float(request.GET['remainder_used'])
+        rem.count -= round(float(request.GET['remainder_used']), 2)
         if not rem.count:
             rem.delete()
         else:
@@ -261,10 +259,10 @@ def add_to_stock(request, mid):
 
     if free > 0:
         add_remainder(
-            task.material_id, float(request.GET['count']) - task.count, float(request.GET['price']))
+            task.material_id, round(float(request.GET['count']) - task.count, 2), round(float(request.GET['price']), 2))
         task.delete()
     elif free < 0:
-        task.count -= float(request.GET['count']) + float(request.GET['remainder_used'])
+        task.count -= round(float(request.GET['count']) + float(request.GET['remainder_used']), 2)
         task.save()
     else:
         task.delete()
@@ -274,8 +272,13 @@ def add_to_stock(request, mid):
 
 # @ajax_required
 @superuser_required
-def add_task(request, mid, count):
-    Task(material_id=mid, count=float(count)).save()
+def add_task(request, mid, count, price, for_order):
+    price = round(float(price.replace(',', '.')), 2)
+    for_order = int(for_order)
+    if count == '0':
+        return HttpResponseBadRequest()
+    Material(material_id=mid, count=round(float(count.replace(',', '.')), 2), price=price if price else None,
+             for_order_id=for_order if for_order else None, status=-1).save()
     return HttpResponse(status=200)
 
 
@@ -317,7 +320,9 @@ def order(request, oid, additional=0):
     o = Order.objects.get(id=oid)
     return render(request, 'main/order.html', context={
         'title': f'Заказ №{oid}', 'order': o, 'additional': additional,
-        'cost': sum(map(lambda x: (x.price * x.count if x.price else 0), o.material_set.all()))})
+        'cost': sum(map(lambda x: (
+            x.price * x.count if x.price else x.material.get_last_price() if x.material.get_last_price() else 0),
+                        o.material_set.all()))})
 
 
 @login_required
@@ -325,16 +330,8 @@ def confirm_stock_material(request, mid):
     """On stock"""
 
     mat = Material.objects.get(id=mid)
-
-    if mat.status == 2:
-        compmat = CompletedMaterial(material_id=mat.material_id, for_order_id=mat.for_order_id,
-                                    count=mat.count, details=mat.details, price=mat.price)
-        compmat.save()
-        mat.delete()
-
-    else:
-        mat.status += 1
-        mat.save()
+    mat.status += 1
+    mat.save()
 
     return HttpResponse(status=200)
 
@@ -365,8 +362,8 @@ def edit_stock_material(request, mid, nid):
                 mat.for_order = None
 
             mat.details = form.data['details']
-            mat.count = float(form.data['count'])
-            mat.price = float(form.data['price'])
+            mat.count = round(float(form.data['count']), 2)
+            mat.price = round(float(form.data['price']), 2)
 
             mat.save()
             res = 'success'
@@ -393,8 +390,14 @@ def get_all_materials(request):
 
 
 def tasks(request):
-    tsks = Task.objects.all()
+    tsks = Material.objects.filter(status=-1)
     return render(request, 'main/tasks.html', context={'title': 'Формирование заказа', 'tasks': tsks})
+
+
+def tasks_search(request, text):
+    tsks = filter(lambda x: text.lower() in x.material.title.lower(), Material.objects.filter(status=-1))
+    return render(request, 'main/tasks-search.html',
+                  context={'title': 'ФЗ поиск: ' + text, 'tasks': list(tsks), 'text': text})
 
 
 @xframe_options_exempt
@@ -442,7 +445,8 @@ def catalog_search(request, text):
 
 def stock_search(request, text):
     return render(request, 'main/stock-search.html', context={
-        'stock': filter(lambda x: text.lower() in x.material.title.lower(), Material.objects.all()),
+        'stock': filter(lambda x: text.lower() in x.material.title.lower(),
+                        Material.objects.filter(status__in=(0, 1, 2))),
         'title': 'Поиск на складе: ' + text,
         'text': text
     })
@@ -450,8 +454,8 @@ def stock_search(request, text):
 
 def mark_arrival(request, mid, count, price):
     try:
-        count = float(count)
-        price = float(price)
+        count = round(float(count), 2)
+        price = round(float(price), 2)
         mat = Material.objects.filter(status=0, material_id=mid)[0]
 
         if count > mat.count:
@@ -479,7 +483,7 @@ def mark_arrival(request, mid, count, price):
 
 
 def archive(request, page=1, for_order=None):
-    mats = CompletedMaterial.objects.filter(for_order_id=for_order) if for_order else CompletedMaterial.objects.all()
+    mats = Material.objects.filter(status=3, for_order_id=for_order) if for_order else Material.objects.filter(status=3)
     mats = mats[::-1]
 
     return render(request, 'main/archive.html', context={
@@ -488,7 +492,7 @@ def archive(request, page=1, for_order=None):
 
 
 def archive_search(request, text, page=1, for_order=None):
-    mats = CompletedMaterial.objects.filter(for_order_id=for_order) if for_order else CompletedMaterial.objects.all()
+    mats = Material.objects.filter(status=3, for_order_id=for_order) if for_order else Material.objects.filter(status=3)
     mats = list(filter(lambda x: text.lower() in x.material.title.lower(), mats))[::-1]
 
     return render(request, 'main/archive-search.html', context={

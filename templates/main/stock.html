@@ -65,7 +65,7 @@
         <table class="table table-hover" style="background-color: azure">
             <thead class="thead-light">
             <tr>
-                <th scope="col">ID</th>
+                <th scope="col">№</th>
                 <th scope="col" style="padding-left: 80px">Материал</th>
                 <th scope="col" style="text-align: center">Кол-во</th>
                 <th scope="col" style="text-align: center">Для заказа</th>
@@ -78,7 +78,7 @@
             {% for elem in stock %}
                 <tr id="tr{{ elem.id }}"
                     aria-expanded="true" aria-controls="collapse{{ elem.id }}">
-                    <th scope="row" style="line-height: 3em;">{{ elem.id }}</th>
+                    <th scope="row" style="line-height: 3em;">{{ forloop.counter }}</th>
                     <td>
                         <div style="color: gray; white-space: nowrap; width: 600px; overflow: hidden; text-overflow: ellipsis;">
                             <img style="float: left; margin-right: 15px"
@@ -89,7 +89,7 @@
                             <a title="{{ elem.details }}">{% if elem.details %}{{ elem.details }}{% endif %}</a>
                         </div>
                     </td>
-                    <td style="line-height: 3em; text-align: center">{{ elem.count }} {{ elem.material.units }}</td>
+                    <td style="line-height: 3em; text-align: center">{{ elem.count|floatformat:2 }} {{ elem.material.units }}</td>
                     <td style="text-align: center">
                         {% if elem.for_order_id %}
                             <a class="for_order" id="fo{{ elem.id }}" href="/order/{{ elem.for_order_id }}"

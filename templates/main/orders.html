@@ -6,6 +6,9 @@
     <div class="container">
         <div class="row">
             <h2 style="margin-bottom: 20px; margin-right: 20px; margin-left: 20px">{{ title }}</h2>
+            <img src="{% static 'img/plus.png' %}" width="20" height="20" alt="plus-img"
+                 style="margin-top: 15px; margin-right: 20px; cursor: pointer"
+                 onclick="window.location = '/create-order'">
             <img src="{% static 'img/filter.png' %}" width="20" height="20" alt="Filter"
                  style="margin-top: 15px; margin-right: 15px; cursor: pointer"
                  onclick="let q = document.getElementById('filters'); q.hidden = !q.hidden;">
