@@ -11,6 +11,18 @@ UNITS = [
 ]
 
 
+class Manager(models.Model):
+    name = models.CharField("Менеджер", max_length=50)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Менеджер"
+        verbose_name_plural = "Менеджеры"
+        db_table = "managers"
+
+
 class Folder(models.Model):
 
     title = models.CharField("Имя", max_length=20)
@@ -84,6 +96,7 @@ class AbsMaterial(models.Model):
 class Order(models.Model):
 
     description = models.CharField("Описание", max_length=50)
+    manager = models.ForeignKey(Manager, models.SET_NULL, null=True, blank=True, verbose_name="Менеджер", default=None)
     client = models.CharField("Заказчик", max_length=50)
     order_date = models.DateField("Дата приёма", default=timezone.now().date())
     status = models.IntegerField("Статус", default=0, choices=[
@@ -100,5 +113,6 @@ class Order(models.Model):
         verbose_name = "Заказ"
         verbose_name_plural = "Заказы"
         db_table = "orders"
+
 
 

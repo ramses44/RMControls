@@ -236,6 +236,9 @@
                     cont.appendChild(price);
                     price.className = 'input-group mb-3';
                     price.innerHTML = "<input class=\"form-control\" id=\"price\"> <div class=\"input-group-append\"><span class=\"input-group-text\">₽/" + units + "</span></div>";
+                    $.get('/api/get-last-price/' + mid.toString(), {}, function (e) {
+                        document.getElementById('price').value = e;
+                    });
 
                     let for_order_l = document.createElement('label');
                     cont.appendChild(for_order_l);
@@ -304,6 +307,9 @@
                     cont.appendChild(arr_price);
                     arr_price.className = 'input-group mb-3';
                     arr_price.innerHTML = "<input class=\"form-control\" id=\"arr_price\"> <div class=\"input-group-append\"><span class=\"input-group-text\">₽/" + units + "</span></div>";
+                    $.get('/api/get-last-price/' + mid.toString(), {}, function (e) {
+                        document.getElementById('arr_price').value = e;
+                    });
 
                     let arr_btn1 = document.createElement('button');
                     arr_btn1.className = 'btn btn-outline-primary';

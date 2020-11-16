@@ -64,7 +64,11 @@ def get_units(request, mid):
 
 
 def get_order_list(request):
-    return JsonResponse({'data': [x.id for x in Order.objects.filter(status__in=(0, 1,))]})
+    return JsonResponse({'data': [x.id for x in Order.objects.filter(status__in=(0, 1,))][::-1]})
+
+
+def get_last_price(request, mid):
+    return HttpResponse(AbsMaterial.objects.get(id=mid).get_last_price())
 
 
 def add_remainder(mid, count, price):
@@ -238,9 +242,8 @@ def add_to_stock(request, mid):
     if request.GET['for_order']:
         free = float(request.GET['count']) + float(request.GET['remainder_used']) - task.count
         mat = Material(material_id=task.material_id,
-                       count=round(task.count - float(request.GET['remainder_used']) - float(
-                           request.GET['count']) if free > 0 else float(
-                           request.GET['count']) + float(request.GET['remainder_used']), 2),
+                       count=round(task.count if free > 0 else float(request.GET['count']) + float(
+                           request.GET['remainder_used']), 2),
                        for_order_id=int(request.GET['for_order']),
                        details=request.GET['details'],
                        price=round(float(request.GET['price']), 2))
@@ -259,7 +262,7 @@ def add_to_stock(request, mid):
 
     if free > 0:
         add_remainder(
-            task.material_id, round(float(request.GET['count']) - task.count, 2), round(float(request.GET['price']), 2))
+            task.material_id, round(free, 2), round(float(request.GET['price']), 2))
         task.delete()
     elif free < 0:
         task.count -= round(float(request.GET['count']) + float(request.GET['remainder_used']), 2)
@@ -294,8 +297,11 @@ def create_order(request, additional=0):
                 Order.objects.get(id=form.data['number'])
                 res = 'error'
             except Order.DoesNotExist:
-                o = Order(id=form.data['number'], client=form.data['client'], description=form.data['description'],
+                o = Order(id=form.data['number'], client=form.data['client'],
+                          description=form.data['description'],
                           order_date=form.data.get('date', None), prod_date=form.data.get('prod_date', None))
+                if int(form.data['manager']):
+                    o.manager_id = int(form.data['manager'])
                 o.save()
                 res = 'success'
                 ad = str(o.id)
@@ -411,6 +417,11 @@ def edit_order(request, oid, additional=0):
         print(form.errors)
         if form.is_valid():
             o.client = form.data['client']
+            print(int(form.data['manager']))
+            if int(form.data['manager']):
+                o.manager_id = int(form.data['manager'])
+            else:
+                o.manager = None
             o.description = form.data['description']
             o.order_date = form.data.get('date', None)
             o.prod_date = form.data['prod_date'] if form.data['prod_date'] else None
@@ -420,8 +431,9 @@ def edit_order(request, oid, additional=0):
         else:
             res = 'error'
     else:
-        form = CreateOrder(dict(number=oid, client=o.client, description=o.description,
-                                date=o.order_date.__str__(), prod_date=o.prod_date.__str__()))
+        form = CreateOrder(
+            dict(number=oid, client=o.client, manager=o.manager_id if o.manager_id else 0, description=o.description,
+                 date=o.order_date.__str__(), prod_date=o.prod_date.__str__()))
 
     context = {
         'form': form,
@@ -477,7 +489,8 @@ def mark_arrival(request, mid, count, price):
 
             return HttpResponse(status=200)
     except IndexError:
-        return HttpResponseBadRequest()
+        add_remainder(mid, round(float(count), 2), round(float(price), 2))
+        return HttpResponse(status=200)
     except TypeError:
         return HttpResponseBadRequest()
 

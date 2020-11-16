@@ -1,6 +1,6 @@
 from django.forms import Form, CharField, TextInput, ChoiceField, Select, URLField, \
     URLInput, FloatField, Textarea, BooleanField, CheckboxInput, DateField, DateInput, IntegerField
-from .models import UNITS, Order, AbsMaterial
+from .models import UNITS, Order, Manager
 
 
 class AddFolder(Form):
@@ -32,6 +32,11 @@ class CreateOrder(Form):
     number = IntegerField(widget=TextInput({
         'class': 'form-control'
     }), label="№ Заказа")
+
+    manager = ChoiceField(widget=Select({
+        'class': 'form-control',
+        'placeholder': 'Кто взял заказ (менеджер)'
+    }), label="Менеджер", choices=list(map(lambda x: (x.id, x.name), Manager.objects.all())) + [(0, '-')])
 
     client = CharField(widget=TextInput({
         'class': 'form-control',
