@@ -123,6 +123,7 @@
             </div>
 
             <div class="col-md-auto" id="additional"></div>
+            <button onclick="topFunction()" class="btn btn-light" id="up" title="Наверх" style="display: none; position: fixed; bottom: 20px; right: 30px; z-index: 99;">Наверх</button>
 
         </div>
 
@@ -339,6 +340,20 @@
         function search() {
             let text = document.getElementById('search').value;
             window.location = text ? ('/catalog/search/' + text) : '/catalog/0';
+        }
+
+        window.onscroll = function() {scrollFunction()};
+
+        function scrollFunction() {
+            if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                document.getElementById("up").style.display = "block";
+            } else {
+                document.getElementById("up").style.display = "none";
+            }
+        }
+
+        function topFunction() {
+            document.documentElement.scrollTop = 0;
         }
 
         (function () {

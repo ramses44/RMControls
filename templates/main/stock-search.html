@@ -98,12 +98,12 @@
                         <td style="text-align: center; padding-top: 17px">
                             <button class="btn btn-light" style="background-color: aliceblue" onmouseenter="document.getElementById('opts{{ elem.id }}').hidden = false" onmouseleave="document.getElementById('opts{{ elem.id }}').hidden = true">
                                 ⋮
-                            <a class="my-dropdown" style="margin-left: 32px; margin-top: -56px" id="opts{{ elem.id }}" hidden>
+                            <a class="my-dropdown" style="margin-left: 32px; margin-top: -32px" id="opts{{ elem.id }}" hidden>
                                 <div style="margin-left: 2px">
                                     <div style="height: 3px"></div>
-                                    <img src="{% static 'img/check.png' %}" alt="check.png" class="btn-light" height="22" width="22" style="background-color: #e1e1e1; opacity: 0.7" onclick="$.get('/stock/confirm/{{ elem.id }}')">
+                                    <img src="{% static 'img/check.png' %}" alt="check.png" class="btn-light" height="22" width="22" style="background-color: #e1e1e1; opacity: 0.7" onclick="confirm({{ elem.id }})">
                                     <div style="height: 3px"></div>
-                                    <img src="{% static 'img/cross.png' %}" alt="cross.png" class="btn-light" height="22" width="22" style="background-color: #e1e1e1; opacity: 0.7" onclick="$.get('/stock/delete/{{ elem.id }}')">
+                                    <img src="{% static 'img/cross.png' %}" alt="cross.png" class="btn-light" height="22" width="22" style="background-color: #e1e1e1; opacity: 0.7" onclick="del({{ elem.id }})">
                                     <div style="height: 3px"></div>
                                     <img src="{% static 'img/pencil.png' %}" alt="pencil.png" class="btn-light" height="22" width="22" style="background-color: #e1e1e1; opacity: 0.7" onclick="restore('{{ elem.id }}')" data-toggle="collapse" data-target="#collapse{{ elem.id }}">
                                     <div style="height: 3px"></div>
@@ -206,6 +206,30 @@
         function search() {
             let text = document.getElementById('search').value;
             window.location = text ? ('/stock/search/' + text) : '/stock';
+        }
+
+        function confirm(mid) {
+            $.get('/stock/confirm/' + mid.toString(), function () {
+                let st = document.getElementById('s' + mid.toString());
+                switch (st.innerText) {
+                    case 'Ожидается':
+                        st.innerText = 'На складе';
+                        break;
+                    case 'На складе':
+                        st.innerText = 'В производстве';
+                        break;
+                    case 'В производстве':
+                        document.getElementById('tr' + mid.toString()).remove();
+                        document.getElementById('expanding' + mid.toString()).remove();
+                        break;
+                }
+            });
+        }
+
+        function del(mid) {
+            $.get('/stock/delete/' + mid.toString());
+            document.getElementById('tr' + mid.toString()).remove();
+            document.getElementById('expanding' + mid.toString()).remove();
         }
 
         (function () {

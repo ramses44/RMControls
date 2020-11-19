@@ -84,7 +84,7 @@ class AbsMaterial(models.Model):
         return last.price if last else None
 
     def get_remainder(self) -> Material:
-        free = Material.objects.filter(material=self, for_order__isnull=True)
+        free = Material.objects.filter(material=self, for_order__isnull=True, status__in=(0, 1))
         return free[0] if free else None
 
     class Meta:
