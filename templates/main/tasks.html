@@ -203,6 +203,8 @@
     </div>
 
     <script>
+        window.fo = '';
+
         function remainder(eid, t) {
             let curr;
             if (document.getElementById('rem' + eid).className[0] !== 'u') {
@@ -293,8 +295,11 @@
 
             let mess = document.createElement('div');
             mess.className = 'alert alert-success';
-            document.getElementById('after').appendChild(mess)
-            mess.innerText = 'Материалы успешно добавлены'
+            document.getElementById('after').appendChild(mess);
+            mess.innerText = 'Материалы успешно добавлены';
+
+            setTimeout(() => { window.location = window.fo ? '/tasks?for_order=' + window.fo : '/tasks'; }, 3000);
+
         }
 
         function filter() {
@@ -304,6 +309,7 @@
                 all_rows[i].hidden = false;
 
             let for_order = document.getElementById('for_order_filter').value;
+            window.fo = for_order;
             if (for_order)
                 for (let i = 0; i < all_rows.length; i ++)
                     if (all_rows[i].className.slice(13) !== for_order)
@@ -324,6 +330,16 @@
                 opt.value = opt.textContent = ff[i];
                 sel.options.add(opt);
             }
+
+            {% if for_order %}
+                for (let i = 0; i <= ff.length; i++) {
+                    opt = sel.options[i];
+                    if (opt.value === '{{ for_order }}')
+                        opt.selected = true;
+                filter();
+                }
+            {% endif %}
+
         }
 
         function search() {

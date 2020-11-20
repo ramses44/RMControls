@@ -239,9 +239,8 @@ def edit_material(request, mid):
 
 def stock(request):
     mats = Material.objects.filter(status__in=(0, 1, 2))
-    return render(request, 'main/stock.html', context={
-        'stock': mats, 'title': 'Склад', 'all': AbsMaterial.objects.all(),
-        'filters': request.GET.get('filters', {})})
+    return render(request, 'main/stock.html',
+                  context={'stock': mats, 'title': 'Склад', 'all': AbsMaterial.objects.all()})
 
 
 def add_to_stock(request, mid):
@@ -411,14 +410,15 @@ def get_all_materials(request):
 def tasks(request):
     tsks = Material.objects.filter(status=-1)
     return render(request, 'main/tasks.html',
-                  context={'title': 'Формирование заказа', 'tasks': tsks, 'filters': request.GET.get('filters', {})})
+                  context={'title': 'Формирование заказа', 'tasks': tsks,
+                           'for_order': request.GET.get('for_order', '')})
 
 
 def tasks_search(request, text):
     tsks = filter(lambda x: text.lower() in x.material.title.lower(), Material.objects.filter(status=-1))
     return render(request, 'main/tasks-search.html',
                   context={'title': 'ФЗ поиск: ' + text, 'tasks': list(tsks), 'text': text,
-                           'filters': request.GET.get('filters', {})})
+                           'for_order': request.GET.get('for_order', '')})
 
 
 @xframe_options_exempt
@@ -478,7 +478,6 @@ def stock_search(request, text):
         'title': 'Поиск на складе: ' + text,
         'all': AbsMaterial.objects.all(),
         'text': text,
-        'filters': request.GET.get('filters', {})
     })
 
 
