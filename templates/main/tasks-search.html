@@ -207,6 +207,8 @@
     </div>
 
     <script>
+        window.fo = '';
+
         function remainder(eid, t) {
             let curr;
             if (document.getElementById('rem' + eid).className[0] !== 'u') {
@@ -299,6 +301,8 @@
             mess.className = 'alert alert-success';
             mess.innerText = 'Материалы успешно добавлены'
             document.getElementById('after').appendChild(mess)
+
+            setTimeout(() => { window.location = window.fo ? '/tasks/search/{{ text }}?for_order=' + window.fo : '/tasks'; }, 3000);
         }
 
         function filter() {
@@ -328,6 +332,15 @@
                 opt.value = opt.textContent = ff[i];
                 sel.options.add(opt);
             }
+
+            {% if for_order %}
+                for (let i = 0; i <= ff.length; i++) {
+                    opt = sel.options[i];
+                    if (opt.value === '{{ for_order }}')
+                        opt.selected = true;
+                filter();
+                }
+            {% endif %}
         }
 
         function search() {
