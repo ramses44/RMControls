@@ -46,4 +46,15 @@
         </form>
     </div>
 
+    <script>
+        function replace_points() {
+            let c = document.getElementById('count');
+            let p = document.getElementById('price');
+            c.value = c.value.replace(',', '.');
+            p.value = p.value.replace(',', '.');
+        }
+
+        replace_points();
+    </script>
+
 {% endblock %}

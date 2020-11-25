@@ -85,8 +85,9 @@ def join_materials(mid):
                 break
 
 
-def add_remainder(mid, count, price):
-    Material(material_id=mid, count=round(count, 2), for_order=None, details='Остаток', price=round(price, 2)).save()
+def add_remainder(mid, count, price, status=0):
+    Material(material_id=mid, count=round(count, 2), for_order=None, details='Остаток', price=round(price, 2),
+             status=status).save()
     join_materials(mid)
 
 
@@ -250,9 +251,9 @@ def add_to_stock(request, mid):
     need = task.count
     count = round(float(request.GET['count']), 2)
     free = count + remainder - need
-    fo = int(request.GET['for_order'])
+    fo = int(request.GET['for_order']) if request.GET['for_order'] else None
     det = request.GET['details']
-    price = round(float(request.GET['price']), 2)
+    price = round(float(request.GET['price']), 2) if request.GET['price'] else None
     amid = task.material_id
 
     if need > remainder:
@@ -336,9 +337,9 @@ def order(request, oid, additional=0):
     o = Order.objects.get(id=oid)
     return render(request, 'main/order.html', context={
         'title': f'Заказ №{oid}', 'order': o, 'additional': additional,
-        'cost': sum(map(lambda x: (
+        'cost': round(sum(map(lambda x: (
             x.price * x.count if x.price else x.material.get_last_price() if x.material.get_last_price() else 0),
-                        o.material_set.all()))})
+                        o.material_set.all())), 2)})
 
 
 @login_required
@@ -380,8 +381,8 @@ def edit_stock_material(request, mid, nid):
                 mat.for_order = None
 
             mat.details = form.data['details']
-            mat.count = round(float(form.data['count']), 2)
-            mat.price = round(float(form.data['price']), 2)
+            mat.count = round(float(form.data['count'].replace(',', '.')), 2)
+            mat.price = round(float(form.data['price'].replace(',', '.')), 2)
 
             mat.save()
             res = 'success'
@@ -429,7 +430,6 @@ def edit_order(request, oid, additional=0):
 
     if request.method == 'POST':
         form = CreateOrder(request.POST)
-        print(form.errors)
         if form.is_valid():
             o.client = form.data['client']
             print(int(form.data['manager']))
@@ -482,15 +482,16 @@ def stock_search(request, text):
 
 
 def mark_arrival(request, mid, count, price):
+    count = round(float(count.replace(',', '.')), 2)
+    price = round(float(price.replace(',', '.')), 2)
     try:
-        count = round(float(count.replace(',', '.')), 2)
-        price = round(float(price.replace(',', '.')), 2)
-        mat = Material.objects.filter(status=0, material_id=mid)[0]
+        mat = Material.objects.filter(status=0, material_id=mid, for_order__isnull=False)
+        mat = mat[0] if mat else Material.objects.filter(status=0, material_id=mid)[0]
 
         if count > mat.count:
             mat.status = 1
             mat.save()
-            return mark_arrival(request, mid, count - mat.count, price)
+            return mark_arrival(request, mid, str(count - mat.count), str(price))
 
         else:
             if count == mat.count:
@@ -508,7 +509,7 @@ def mark_arrival(request, mid, count, price):
 
             return HttpResponse(status=200)
     except IndexError:
-        add_remainder(mid, round(float(count.replace(',', '.')), 2), round(float(price.replace(',', '.')), 2))
+        add_remainder(mid, count, price, 1)
         return HttpResponse(status=200)
     except TypeError:
         return HttpResponseBadRequest()
@@ -537,6 +538,20 @@ def orders(request):
     return render(request, 'main/orders.html', context={'title': 'Все заказы', 'orders': Order.objects.all()})
 
 
-def test(request):
-    add_remainder(10, 0.5, 63.9)
+def order_to_work(request, oid: int):
+    mats = Material.objects.filter(for_order_id=oid, status=1)
+
+    if mats:
+        o = Order.objects.get(id=oid)
+        o.status = 1
+        o.save()
+
+    for mat in mats:
+        mat.status = 2
+        mat.save()
+
     return HttpResponse(status=200)
+
+
+def test(request):
+    return HttpResponseBadRequest()

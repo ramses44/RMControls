@@ -4,12 +4,16 @@
 {% block content %}
 
     <div class="container">
-        <h2 style="margin-bottom: 20px">{{ title }}<a class="badge badge-link"
-                                                      href="/edit-order/{{ order.id }}{% if additional %}/1{% endif %}">&#128393</a>
-        </h2>
+        <div class="row">
+            <h2 style="margin-bottom: 20px">{{ title }}<a class="badge badge-link"
+                                                          href="/edit-order/{{ order.id }}{% if additional %}/1{% endif %}">&#128393</a>
+            </h2>
+            <button class="btn btn-outline-primary btn-sm" style="height: 40px" onclick="$.get('/api/order-to-work/{{ order.id }}'); window.location.href=''">В производство</button>
+        </div>
 
         <label>Заказчик: <label style="color: gray">{{ order.client }}</label></label> <br>
         <label>Описание: <label style="color: gray; width: auto">{{ order.description }}</label></label> <br>
+        <label>Статус: <label style="color: gray; width: auto">{{ order.get_status_display }}</label></label> <br>
         <label>Дата приёма: <label style="color: gray">{{ order.order_date }}</label></label> <br>
         <label>Дата исполнения: <label style="color: gray">{{ order.prod_date }}</label></label> <br>
         <label>Менеджер (кто взял заказ): <label style="color: gray">{{ order.manager }}</label></label> <br>

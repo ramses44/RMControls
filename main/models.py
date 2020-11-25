@@ -81,7 +81,7 @@ class AbsMaterial(models.Model):
 
     def get_last_price(self):
         last = Material.objects.filter(material_id=self.id, price__isnull=False).last()
-        return last.price if last else None
+        return round(last.price, 2) if last else None
 
     def get_remainder(self) -> Material:
         free = Material.objects.filter(material=self, for_order__isnull=True, status__in=(0, 1))

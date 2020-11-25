@@ -56,7 +56,8 @@
         </div>
 
         <div class="input-group mb-3">
-            <input type="text" class="form-control" placeholder="Поиск..." aria-label="Поиск..." id="search" value="{{ text }}">
+            <input type="text" class="form-control" placeholder="Поиск..." aria-label="Поиск..." id="search"
+                   value="{{ text }}">
             <div class="input-group-append">
                 <button class="btn btn-outline-secondary" type="button" onclick="search()">&#128269</button>
             </div>
@@ -70,7 +71,8 @@
                 <th scope="col" style="text-align: center">Кол-во</th>
                 <th scope="col" style="text-align: center">Для заказа</th>
                 <th scope="col" style="text-align: center">Статус</th>
-                {% if user.is_authenticated %}<th scope="col"> </th>{% endif %}
+                {% if user.is_authenticated %}
+                    <th scope="col"></th>{% endif %}
             </tr>
             </thead>
             <tbody>
@@ -90,25 +92,39 @@
                     </td>
                     <td style="line-height: 3em; text-align: center">{{ elem.count|floatformat:2 }} {{ elem.material.units }}</td>
                     <td style="text-align: center">
-                        {% if elem.for_order_id %}<a class="for_order" id="fo{{ elem.id }}" href="/order/{{ elem.for_order_id }}" style="line-height: 3em;">№
-                            {{ elem.for_order_id }}{% else %}<a class="for_order" id="fo{{ elem.id }}" style="line-height: 3em;"> - {% endif %}</a>
+                        {% if elem.for_order_id %}
+                            <a class="for_order" id="fo{{ elem.id }}" href="/order/{{ elem.for_order_id }}"
+                               style="line-height: 3em;">№
+                            {{ elem.for_order_id }}{% else %}
+                            <a class="for_order" id="fo{{ elem.id }}" style="line-height: 3em;"> - {% endif %}</a>
                     </td>
-                    <td style="line-height: 3em; text-align: center" id="s{{ elem.id }}">{{ elem.get_status_display }}</td>
+                    <td style="line-height: 3em; text-align: center"
+                        id="s{{ elem.id }}">{{ elem.get_status_display }}</td>
                     {% if user.is_authenticated %}
                         <td style="text-align: center; padding-top: 17px">
-                            <button class="btn btn-light" style="background-color: aliceblue" onmouseenter="document.getElementById('opts{{ elem.id }}').hidden = false" onmouseleave="document.getElementById('opts{{ elem.id }}').hidden = true">
+                            <button class="btn btn-light" style="background-color: aliceblue"
+                                    onclick="document.getElementById('opts{{ elem.id }}').hidden = !document.getElementById('opts{{ elem.id }}').hidden">
                                 ⋮
-                            <a class="my-dropdown" style="margin-left: 32px; margin-top: -32px" id="opts{{ elem.id }}" hidden>
-                                <div style="margin-left: 2px">
-                                    <div style="height: 3px"></div>
-                                    <img src="{% static 'img/check.png' %}" alt="check.png" class="btn-light" height="22" width="22" style="background-color: #e1e1e1; opacity: 0.7" onclick="confirm({{ elem.id }})">
-                                    <div style="height: 3px"></div>
-                                    <img src="{% static 'img/cross.png' %}" alt="cross.png" class="btn-light" height="22" width="22" style="background-color: #e1e1e1; opacity: 0.7" onclick="del({{ elem.id }})">
-                                    <div style="height: 3px"></div>
-                                    <img src="{% static 'img/pencil.png' %}" alt="pencil.png" class="btn-light" height="22" width="22" style="background-color: #e1e1e1; opacity: 0.7" onclick="restore('{{ elem.id }}')" data-toggle="collapse" data-target="#collapse{{ elem.id }}">
-                                    <div style="height: 3px"></div>
-                                </div>
-                            </a>
+                                <a class="my-dropdown" style="margin-left: 32px; margin-top: -3.6%"
+                                   id="opts{{ elem.id }}" hidden
+                                   onclick="document.getElementById('opts{{ elem.id }}').hidden = !document.getElementById('opts{{ elem.id }}').hidden">
+                                    <div style="margin-left: 2px">
+                                        <div style="height: 3px"></div>
+                                        <img src="{% static 'img/check.png' %}" alt="check.png" class="btn-light"
+                                             height="22" width="22" style="background-color: #e1e1e1; opacity: 0.7"
+                                             onclick="confirm({{ elem.id }})">
+                                        <div style="height: 3px"></div>
+                                        <img src="{% static 'img/cross.png' %}" alt="cross.png" class="btn-light"
+                                             height="22" width="22" style="background-color: #e1e1e1; opacity: 0.7"
+                                             onclick="del({{ elem.id }})">
+                                        <div style="height: 3px"></div>
+                                        <img src="{% static 'img/pencil.png' %}" alt="pencil.png" class="btn-light"
+                                             height="22" width="22" style="background-color: #e1e1e1; opacity: 0.7"
+                                             onclick="restore('{{ elem.id }}')" data-toggle="collapse"
+                                             data-target="#collapse{{ elem.id }}">
+                                        <div style="height: 3px"></div>
+                                    </div>
+                                </a>
                             </button>
                         </td>
                     {% endif %}

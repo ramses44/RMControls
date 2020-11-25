@@ -73,7 +73,9 @@ class EditOnStock(Form):
 
     count = FloatField(widget=TextInput({
         'class': 'form-control',
-        'style': 'background-color: aliceblue'
+        'style': 'background-color: aliceblue',
+        'id': 'count',
+        'onchange': 'replace_points();'
     }), label="Заказывается")
 
     details = CharField(widget=Textarea({
@@ -83,5 +85,7 @@ class EditOnStock(Form):
 
     price = FloatField(widget=TextInput({
         'class': 'form-control',
-        'style': 'background-color: aliceblue'
+        'style': 'background-color: aliceblue',
+        'id': 'count',
+        'onchange': 'replace_points();'
     }), label="Цена")

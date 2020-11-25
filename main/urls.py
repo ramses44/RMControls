@@ -38,5 +38,6 @@ urlpatterns = [
     path('archive/search/<str:text>/<int:page>', views.archive_search),
     path('archive/search/<str:text>/<int:page>/<int:for_order>', views.archive_search),
     path('orders', views.orders),
-    path('api/get-last-price/<int:mid>', views.get_last_price)
+    path('api/get-last-price/<int:mid>', views.get_last_price),
+    path('api/order-to-work/<int:oid>', views.order_to_work)
 ]

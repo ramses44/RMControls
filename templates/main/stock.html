@@ -102,11 +102,11 @@
                     {% if user.is_authenticated %}
                         <td style="text-align: center; padding-top: 17px">
                             <button class="btn btn-light" style="background-color: aliceblue"
-                                    onmouseenter="document.getElementById('opts{{ elem.id }}').hidden = false"
-                                    onmouseleave="document.getElementById('opts{{ elem.id }}').hidden = true">
+                                    onclick="document.getElementById('opts{{ elem.id }}').hidden = !document.getElementById('opts{{ elem.id }}').hidden">
                                 ⋮
-                                <a class="my-dropdown" style="margin-left: 32px; margin-top: -32px"
-                                   id="opts{{ elem.id }}" hidden>
+                                <a class="my-dropdown" style="margin-left: 32px; margin-top: -3.6%"
+                                   id="opts{{ elem.id }}" hidden
+                                   onclick="document.getElementById('opts{{ elem.id }}').hidden = !document.getElementById('opts{{ elem.id }}').hidden">
                                     <div style="margin-left: 2px">
                                         <div style="height: 3px"></div>
                                         <img src="{% static 'img/check.png' %}" alt="check.png" class="btn-light"

@@ -274,17 +274,19 @@
                         let fo = document.getElementById('for_order').value;
                         $.ajax('/add-task/' + mid.toString() + '/' + (count ? count : 0) + '/' + (price ? price : 0) + '/' + (fo ? fo : 0), {
                             type: 'get',
-                            success: function () {
-                                let mess = document.createElement('div');
-                                mess.className = 'alert alert-success';
-                                mess.innerText = mat + ' успешно добавлен!';
-                                cont.insertBefore(mess, count_l);
-                            },
-                            failure: function () {
-                                let mess = document.createElement('div');
-                                mess.className = 'alert alert-danger';
-                                mess.innerText = 'Не удалось добавить ' + mat + '! Перезагрузите страницу и попробуйте ещё раз';
-                                cont.insertBefore(mess, count_l);
+                            complete: function (r) {
+                                if (r.status === 200) {
+                                    let mess = document.createElement('div');
+                                    mess.className = 'alert alert-success';
+                                    mess.innerText = mat + ' успешно добавлен!';
+                                    cont.insertBefore(mess, count_l);
+                                }
+                                else {
+                                    let mess = document.createElement('div');
+                                    mess.className = 'alert alert-danger';
+                                    mess.innerText = 'Не удалось добавить ' + mat + '! Перезагрузите страницу и попробуйте ещё раз';
+                                    cont.insertBefore(mess, count_l);
+                                }
                             }
                         })
                     }
@@ -318,17 +320,19 @@
                     arr_btn1.onclick = function () {
                         $.ajax('/mark-arrival/' + mid.toString() + '/' + document.getElementById('arr_count_value').value + '/' + document.getElementById(('arr_price')).value, {
                             type: 'get',
-                            success: function () {
-                                let mess = document.createElement('div');
-                                mess.className = 'alert alert-success';
-                                mess.innerText = mat + ' отмечен на складе';
-                                cont.insertBefore(mess, arr_count_l);
-                            },
-                            failure: function () {
-                                let mess = document.createElement('div');
-                                mess.className = 'alert alert-danger';
-                                mess.innerText = 'Что-то пошло не так! Возможно, материал не был заказан или вы указали некорректные значения полей';
-                                cont.insertBefore(mess, arr_count_l);
+                            complete: function (r) {
+                                if (r.status === 200) {
+                                    let mess = document.createElement('div');
+                                    mess.className = 'alert alert-success';
+                                    mess.innerText = mat + ' отмечен на складе';
+                                    cont.insertBefore(mess, arr_count_l);
+                                }
+                                else {
+                                    let mess = document.createElement('div');
+                                    mess.className = 'alert alert-danger';
+                                    mess.innerText = 'Что-то пошло не так! Возможно, материал не был заказан или вы указали некорректные значения полей';
+                                    cont.insertBefore(mess, arr_count_l);
+                                }
                             }
                         })
                     }
