@@ -31,13 +31,16 @@
             <img src="{% static 'img/filter.png' %}" width="20" height="20" alt="Filter"
                  style="margin-top: 15px; margin-right: 15px; cursor: pointer"
                  onclick="let q = document.getElementById('filters'); q.hidden = !q.hidden;">
-            <div class="row" id="filters" style="margin-top: 5px" hidden>
+            <div class="row" id="filters" style="margin-top: 5px" {% if not exp_filters %}hidden{% endif %}>
                 <div class="input-group mb-3" style="width: 400px; margin-left: 50px">
                     <div class="input-group-prepend">
                         <label class="input-group-text" for="for_order_filter">Для закза</label>
                     </div>
                     <select class="form-control" id="for_order_filter" onchange="filter()">
                         <option value="" selected>Все</option>
+                        {% for opt in orders %}
+                            <option value="{{ opt.id }}" {% if opt.id == for_order_id %}selected{% endif %}>№{{ opt.id }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div style="width: 50px"></div>
@@ -47,9 +50,9 @@
                     </div>
                     <select class="form-control" id="status_filter" onchange="filter()">
                         <option value="" selected>Любой</option>
-                        <option value="На складе">На складе</option>
-                        <option value="Ожидается">Ожидается</option>
-                        <option value="В производстве">В производстве</option>
+                        <option value="1" {% if 1 == status %}selected{% endif %}>На складе</option>
+                        <option value="0" {% if 0 == status %}selected{% endif %}>Ожидается</option>
+                        <option value="2" {% if 2 == status %}selected{% endif %}>В производстве</option>
                     </select>
                 </div>
             </div>
@@ -102,11 +105,11 @@
                     {% if user.is_authenticated %}
                         <td style="text-align: center; padding-top: 17px">
                             <button class="btn btn-light" style="background-color: aliceblue"
-                                    onclick="document.getElementById('opts{{ elem.id }}').hidden = !document.getElementById('opts{{ elem.id }}').hidden">
+                                    onclick="hide_dds(); document.getElementById('opts{{ elem.id }}').hidden = !document.getElementById('opts{{ elem.id }}').hidden">
                                 ⋮
                                 <a class="my-dropdown" style="margin-left: 32px; margin-top: -3.6%"
                                    id="opts{{ elem.id }}" hidden
-                                   onclick="document.getElementById('opts{{ elem.id }}').hidden = !document.getElementById('opts{{ elem.id }}').hidden">
+                                   onclick="hide_dds()">
                                     <div style="margin-left: 2px">
                                         <div style="height: 3px"></div>
                                         <img src="{% static 'img/check.png' %}" alt="check.png" class="btn-light"
@@ -156,29 +159,47 @@
             {% endfor %}
             </tbody>
         </table>
+        <br>
+
+        <div class="container row">
+            <style>
+                .my-btn {
+                    margin-right: 10px;
+                    width: 40px;
+                    height: 40px;
+                }
+            </style>
+            {% if page > 1 %}
+                <a class="btn btn-outline-secondary my-btn" onclick="to_page({{ page|add:-1 }})"><</a>
+                <a class="btn btn-outline-secondary my-btn" onclick="to_page({{ page|add:-1 }})">{{ page|add:-1 }}</a>
+            {% endif %}
+            <a class="btn btn-outline-secondary my-btn disabled" onclick="to_page({{ page }})">{{ page }}</a>
+            {% if not is_last %}
+                <a class="btn btn-outline-secondary my-btn disabled" >...</a>
+                <a class="btn btn-outline-secondary my-btn" onclick="to_page({{ page|add:+1 }})">{{ page|add:+1 }}</a>
+                <a class="btn btn-outline-secondary my-btn" onclick="to_page({{ page|add:+1 }})">></a>
+            {% endif %}
+
+        </div>
     </div>
 
     <script>
+        function hide_dds() {
+            let dds = document.getElementsByClassName('my-dropdown');
 
-        function init_filters() {
-            let ords = document.getElementsByClassName('for_order');
-            let ff = [];
-            for (let i = 0; i < ords.length; i++) {
-                if (!ff.includes(ords[i].innerText))
-                    ff.push(ords[i].innerText);
-            }
-            let sel = document.getElementById('for_order_filter');
-            let opt;
-            for (let i = 0; i < ff.length; i++) {
-                opt = document.createElement('option');
-                opt.value = opt.textContent = ff[i];
-                sel.options.add(opt);
-            }
-
-
+            for (let i = 0; i < dds.length; i++)
+                dds[i].hidden = true;
         }
 
-        init_filters();
+        function to_page(page) {
+            let fo = document.getElementById('for_order_filter').value;
+            let st = document.getElementById('status_filter').value;
+
+            if (fo || st)
+                window.location = '/stock/' + page.toString() + '?' + (fo ? 'for_order=' + fo + '&': '') + (st ? 'status=' + st + '&' : '') + 'exp_filters=1';
+            else
+                window.location = '/stock/' + page.toString();
+        }
 
         function restore(el_id) {
             let exp = document.getElementById("expanded" + el_id);
@@ -199,30 +220,18 @@
         }
 
         function filter() {
-            let all_rows = Array.from(document.getElementsByTagName('tr')).slice(1);
+            let fo = document.getElementById('for_order_filter').value;
+            let st = document.getElementById('status_filter').value;
 
-            for (let i = 0; i < all_rows.length; i++)
-                if (i % 2)
-                    all_rows[i].children[0].className = 'collapse';
-                else
-                    all_rows[i].hidden = false;
-
-            let for_order = document.getElementById('for_order_filter').value;
-            if (for_order)
-                for (let i = 0; i < all_rows.length; i += 2)
-                    if (document.getElementById('fo' + all_rows[i].id.slice(2)).innerText !== for_order)
-                        all_rows[i].hidden = true;
-
-            let status = document.getElementById('status_filter').value;
-            if (status)
-                for (let i = 0; i < all_rows.length; i += 2)
-                    if (document.getElementById('s' + all_rows[i].id.slice(2)).innerText !== status)
-                        all_rows[i].hidden = true;
+            if (fo || st)
+                window.location = '/stock/1' + '?' + (fo ? 'for_order=' + fo + '&': '') + (st ? 'status=' + st + '&' : '') + 'exp_filters=1';
+            else
+                window.location = '/stock/1';
         }
 
         function search() {
             let text = document.getElementById('search').value;
-            window.location = text ? ('/stock/search/' + text) : '/stock';
+            window.location = text ? ('/stock/search/' + text + '/1') : '/stock/1';
         }
 
         (function () {

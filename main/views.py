@@ -7,7 +7,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
 
-ON_PAGE = 1
+ON_PAGE = 10
 
 
 def superuser_required(func):
@@ -238,12 +238,64 @@ def edit_material(request, mid):
     return render(request, 'main/add.html', context)
 
 
-def stock(request):
-    mats = Material.objects.filter(status__in=(0, 1, 2))
+def stock(request, page=1):
+    kw = {}
+    if 'for_order' in request.GET:
+        kw['for_order_id'] = int(request.GET['for_order'])
+    if 'status' in request.GET:
+        kw['status'] = int(request.GET['status'])
+
+    mats = Material.objects.filter(status__in=(0, 1, 2), **kw)
+    mats = mats[::-1]
+
     return render(request, 'main/stock.html',
-                  context={'stock': mats, 'title': 'Склад', 'all': AbsMaterial.objects.all()})
+                  context={'stock': mats[ON_PAGE * (page - 1):ON_PAGE * page], 'is_last': len(mats) <= ON_PAGE * page,
+                           'title': 'Склад', 'all': AbsMaterial.objects.all(), 'page': page,
+                           'orders': Order.objects.filter(status__in=(0, 1)), **kw,
+                           'exp_filters': request.GET.get('exp_filters', '')})
 
 
+def stock_search(request, text, page=1):
+    kw = {}
+    if 'for_order' in request.GET:
+        kw['for_order_id'] = int(request.GET['for_order'])
+    if 'status' in request.GET:
+        kw['status'] = int(request.GET['status'])
+
+    mats = Material.objects.filter(status__in=(0, 1, 2), **kw)
+    mats = list(filter(lambda x: text.lower() in x.material.title.lower(), mats))[::-1]
+
+    return render(request, 'main/stock-search.html', context={
+        'stock': mats[ON_PAGE * (page - 1):ON_PAGE * page], 'is_last': len(mats) <= ON_PAGE * page,
+        'title': 'Поиск на складе: ' + text,
+        'all': AbsMaterial.objects.all(),
+        'text': text,
+        'orders': Order.objects.filter(status__in=(0, 1)),
+        'page': page, **kw,
+        'exp_filters': request.GET.get('exp_filters', '')
+    })
+
+
+def archive(request, page=1, for_order=None):
+    mats = Material.objects.filter(status=3, for_order_id=for_order) if for_order else Material.objects.filter(status=3)
+    mats = mats[::-1]
+
+    return render(request, 'main/archive.html', context={
+        'materials': mats[ON_PAGE * (page - 1):ON_PAGE * page], 'title': 'Архив материалов', 'page': page,
+        'is_last': len(mats) <= ON_PAGE * page, 'orders': Order.objects.filter(status=2), 'for_order': for_order})
+
+
+def archive_search(request, text, page=1, for_order=None):
+    mats = Material.objects.filter(status=3, for_order_id=for_order) if for_order else Material.objects.filter(status=3)
+    mats = list(filter(lambda x: text.lower() in x.material.title.lower(), mats))[::-1]
+
+    return render(request, 'main/archive-search.html', context={
+        'materials': mats[ON_PAGE * (page - 1):ON_PAGE * page], 'title': 'Поиск по архиву: ' + text, 'page': page,
+        'is_last': len(mats) <= ON_PAGE * page, 'orders': Order.objects.filter(status=2),
+        'text': text, 'for_order': for_order})
+
+
+@login_required
 def add_to_stock(request, mid):
     task = Material.objects.get(id=mid)
     rem = task.material.get_remainder()
@@ -285,7 +337,7 @@ def add_to_stock(request, mid):
 
 
 # @ajax_required
-@superuser_required
+@login_required
 def add_task(request, mid, count, price, for_order):
     price = round(float(price.replace(',', '.')), 2)
     for_order = int(for_order)
@@ -297,6 +349,7 @@ def add_task(request, mid, count, price, for_order):
 
 
 @xframe_options_exempt
+@login_required
 def create_order(request, additional=0):
     res = None
     ad = ''
@@ -339,7 +392,7 @@ def order(request, oid, additional=0):
         'title': f'Заказ №{oid}', 'order': o, 'additional': additional,
         'cost': round(sum(map(lambda x: (
             x.price * x.count if x.price else x.material.get_last_price() if x.material.get_last_price() else 0),
-                        o.material_set.all())), 2)})
+                              o.material_set.all())), 2)})
 
 
 @login_required
@@ -423,6 +476,7 @@ def tasks_search(request, text):
 
 
 @xframe_options_exempt
+@login_required
 def edit_order(request, oid, additional=0):
     res = None
     ad = ''
@@ -471,16 +525,7 @@ def catalog_search(request, text):
     })
 
 
-def stock_search(request, text):
-    return render(request, 'main/stock-search.html', context={
-        'stock': filter(lambda x: text.lower() in x.material.title.lower(),
-                        Material.objects.filter(status__in=(0, 1, 2))),
-        'title': 'Поиск на складе: ' + text,
-        'all': AbsMaterial.objects.all(),
-        'text': text,
-    })
-
-
+@login_required
 def mark_arrival(request, mid, count, price):
     count = round(float(count.replace(',', '.')), 2)
     price = round(float(price.replace(',', '.')), 2)
@@ -515,29 +560,11 @@ def mark_arrival(request, mid, count, price):
         return HttpResponseBadRequest()
 
 
-def archive(request, page=1, for_order=None):
-    mats = Material.objects.filter(status=3, for_order_id=for_order) if for_order else Material.objects.filter(status=3)
-    mats = mats[::-1]
-
-    return render(request, 'main/archive.html', context={
-        'materials': mats[ON_PAGE * (page - 1):ON_PAGE * page], 'title': 'Архив материалов', 'page': page,
-        'is_last': len(mats) <= ON_PAGE * page, 'orders': Order.objects.filter(status=2), 'for_order': for_order})
-
-
-def archive_search(request, text, page=1, for_order=None):
-    mats = Material.objects.filter(status=3, for_order_id=for_order) if for_order else Material.objects.filter(status=3)
-    mats = list(filter(lambda x: text.lower() in x.material.title.lower(), mats))[::-1]
-
-    return render(request, 'main/archive-search.html', context={
-        'materials': mats[ON_PAGE * (page - 1):ON_PAGE * page], 'title': 'Поиск по архиву: ' + text, 'page': page,
-        'is_last': len(mats) <= ON_PAGE * page, 'orders': Order.objects.filter(status=2),
-        'text': text, 'for_order': for_order})
-
-
 def orders(request):
     return render(request, 'main/orders.html', context={'title': 'Все заказы', 'orders': Order.objects.all()})
 
 
+@login_required
 def order_to_work(request, oid: int):
     mats = Material.objects.filter(for_order_id=oid, status=1)
 
@@ -549,6 +576,19 @@ def order_to_work(request, oid: int):
     for mat in mats:
         mat.status = 2
         mat.save()
+
+    return HttpResponse(status=200)
+
+
+@login_required
+def confirm_order(request, oid: int):
+    for mat in Material.objects.filter(for_order_id=oid, status=2):
+        mat.status = 3
+        mat.save()
+
+    o = Order.objects.get(id=oid)
+    o.status = 2
+    o.save()
 
     return HttpResponse(status=200)
 

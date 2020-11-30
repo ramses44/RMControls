@@ -5,10 +5,22 @@
 
     <div class="container">
         <div class="row">
-            <h2 style="margin-bottom: 20px">{{ title }}<a class="badge badge-link"
-                                                          href="/edit-order/{{ order.id }}{% if additional %}/1{% endif %}">&#128393</a>
+            <h2 style="margin-bottom: 20px">{{ title }}
+                {% if user.is_authenticated %}
+                    <a class="badge badge-link" href="/edit-order/{{ order.id }}{% if additional %}/1{% endif %}">&#128393</a>
+                {% endif %}
             </h2>
-            <button class="btn btn-outline-primary btn-sm" style="height: 40px" onclick="$.get('/api/order-to-work/{{ order.id }}'); window.location.href=''">В производство</button>
+            {% if user.is_authenticated %}
+                <button class="btn btn-outline-primary btn-sm" style="height: 40px"
+                        onclick="$.get('/api/order-to-work/{{ order.id }}'); setTimeout(() => { window.location.href='' }, 300);">
+                    В производство
+                </button>
+                <div style="width: 10px"></div>
+                <button class="btn btn-outline-success btn-sm" style="height: 40px"
+                        onclick="$.get('/api/confirm-order/{{ order.id }}'); setTimeout(() => { window.location.href='' }, 300);">
+                    Выполнен
+                </button>
+            {% endif %}
         </div>
 
         <label>Заказчик: <label style="color: gray">{{ order.client }}</label></label> <br>
@@ -23,7 +35,8 @@
             {% for elem in order.material_set.all %}
                 <li>
                     <label>{{ elem.material.title }} - {{ elem.count|floatformat:2 }} {{ elem.material.units }}</label>
-                    <label style="color: gray">{% if elem.details %}({{ elem.details }}){% endif %} - {{ elem.get_status_display }}</label>
+                    <label style="color: gray">{% if elem.details %}({{ elem.details }}){% endif %}
+                        - {{ elem.get_status_display }}</label>
                 </li>
             {% endfor %}
         </ul>

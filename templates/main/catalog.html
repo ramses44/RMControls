@@ -48,7 +48,7 @@
         <div class="row">
             <div class="col-md-auto" id="btns">
                 {% for folder in root.folder_set.all %}
-                    <button oncontextmenu="actions({{ folder.id }}, '{{ folder.title }}', 'folder', 'btn{{ forloop.counter0 }}'); return false"
+                    <button {% if user.is_superuser %}oncontextmenu="actions({{ folder.id }}, '{{ folder.title }}', 'folder', 'btn{{ forloop.counter0 }}'); return false"{% endif %}
                             style="width: 250px; margin-bottom: 5px; text-align: left" id="btn{{ forloop.counter0 }}"
                             onclick="expand({{ forloop.counter0 }})" class="btn btn-light btn-lg">
                         <img src="{% static 'img/folder.png' %}" width="20" height="20"/>
@@ -56,9 +56,9 @@
                 {% endfor %}
 
                 {% for mat in root.absmaterial_set.all %}
-                    <button oncontextmenu="actions({{ mat.id }}, '{{ mat.title }}', 'material', 'mbtn{{ forloop.counter0 }}'); return false"
+                    <button {% if user.is_superuser %}oncontextmenu="actions({{ mat.id }}, '{{ mat.title }}', 'material', 'mbtn{{ forloop.counter0 }}'); return false"{% endif %}
                             id="mbtn{{ forloop.counter0 }}" style="width: 250px; margin-bottom: 5px; text-align: left"
-                            onclick="add_to_stock({{ mat.id }}, '{{ mat.title }}')" class="btn btn-light btn-lg">
+                            {% if user.is_authenticated %}onclick="add_to_stock({{ mat.id }}, '{{ mat.title }}')"{% endif %} class="btn btn-light btn-lg">
                         <img src="{% if mat.picture_url %} {{ mat.picture_url }} {% else %} {% static 'img/material.png' %} {% endif %}"
                              width="20" height="20"/>
                         {{ mat.title }}</button> <br>
@@ -86,7 +86,7 @@
                             {% for elem in folder.folder_set.all %}
                                 {#                        <button type="button" class="btn btn-light" onclick="window.location = '/catalog/{{ elem.id }}'">{{ elem.title }}</button> <br>#}
                                 <div class="shadow-sm p-sm-2 mb-1 bg-white rounded" id="cfolder{{ forloop.counter0 }}"
-                                     oncontextmenu="actions({{ elem.id }}, '{{ elem.title }}', 'folder', 'cfolder{{ forloop.counter0 }}'); return false">
+                                     {% if user.is_superuser %}oncontextmenu="actions({{ elem.id }}, '{{ elem.title }}', 'folder', 'cfolder{{ forloop.counter0 }}'); return false"{% endif %}>
                                     <img style="float: left;" src="{% static 'img/folder.png' %}" width="50"
                                          height="50"/>
                                     <a href="/catalog/{{ elem.id }}" style="width: 300px"> <big><u>{{ elem.title }}</u></big>
@@ -96,12 +96,12 @@
 
                             {% for elem in folder.absmaterial_set.all %}
                                 <div class="shadow-sm p-sm-2 mb-1 bg-white rounded" id="cmaterial{{ forloop.counter0 }}"
-                                     oncontextmenu="actions({{ elem.id }}, '{{ elem.title }}', 'material', 'cmaterial{{ forloop.counter0 }}'); return false">
+                                     {% if user.is_superuser %}oncontextmenu="actions({{ elem.id }}, '{{ elem.title }}', 'material', 'cmaterial{{ forloop.counter0 }}'); return false"{% endif %}>
                                     {#                        <button type="button" class="btn btn-light" onclick="window.location = '/add-to-stock/{{ elem.id }}'">{{ elem.title }}</button> <br>#}
                                     <img style="float: left;"
                                          src="{% if elem.picture_url %} {{ elem.picture_url }} {% else %} {% static 'img/material.png' %} {% endif %}"
                                          width="50" height="50"/>
-                                    <a href="#" onclick="add_to_stock({{ elem.id }}, '{{ elem.title }}')">
+                                    <a href="#" {% if user.is_authenticated %}onclick="add_to_stock({{ elem.id }}, '{{ elem.title }}')"{% endif %}>
                                         <big><u>{{ elem.title }}</u></big> </a>
                                 </div>
                             {% endfor %}

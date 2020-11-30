@@ -94,7 +94,7 @@
                 <th scope="col" style="text-align: center">Заказывается</th>
                 <th scope="col" style="text-align: center">Цена</th>
                 <th scope="col" style="text-align: center">Остатки</th>
-                <th scope="col"> </th>
+                {% if user.is_authenticated %}<th scope="col"> </th>{% endif %}
             </tr>
             </thead>
             <tbody>
@@ -168,46 +168,48 @@
         </table>
     </div>
 
-    <div class="container">
-        <hr>
-        <div class="row">
-            <div class="col-md-auto" id="after">
-                <div class="form-group">
-                    <label for="for_order"> Для заказа</label>
-                    <div class="input-group mb-3">
-                        <select class="form-control" id="for_order" style="width: 400px" onchange="order_info()">
-                            <option value selected>None</option>
-                        </select>
-                        <div class="input-group-append" onclick="add_order()" style="cursor: pointer"><span
-                                class="input-group-text">+</span></div>
-                    </div>
-                </div>
-                <script> refresh_selection() </script>
-                <label for="details">Детали (примечания)</label>
-                <textarea class="form-control" id="details"></textarea>
-                <br>
-                <big><p style="color: gray">Заказ: <label id="cost">0.00</label>₽</p></big>
-                <big><p style="color: gray">Всего: <label id="cost2">0.00</label>₽</p></big>
-                <button class="btn btn-outline-success" id="btn" onclick="ordered()">&#10003 Заказано</button>
-                <br>
-                <div style="height: 25px"></div>
-            </div>
-
-            <div class="col-md-auto">
-                <div class="card card-body" id="additional" hidden>
-                    <div class="container">
-                        <div style="float: right; cursor: pointer;"
-                             onclick="document.getElementById('additional').hidden = true">✖
+    {% if user.is_authenticated %}
+        <div class="container">
+            <hr>
+            <div class="row">
+                <div class="col-md-auto" id="after">
+                    <div class="form-group">
+                        <label for="for_order"> Для заказа</label>
+                        <div class="input-group mb-3">
+                            <select class="form-control" id="for_order" style="width: 400px" onchange="order_info()">
+                                <option value selected>None</option>
+                            </select>
+                            <div class="input-group-append" onclick="add_order()" style="cursor: pointer"><span
+                                    class="input-group-text">+</span></div>
                         </div>
                     </div>
-                    <iframe id="iframe" frameborder="false" scrolling="no" width="600px" height="630px"
-                            onload="refresh_selection()"></iframe>
-                    <iframe id="iframe2" frameborder="false" scrolling="no" width="600px" height="630px"
-                            hidden></iframe>
+                    <script> refresh_selection() </script>
+                    <label for="details">Детали (примечания)</label>
+                    <textarea class="form-control" id="details"></textarea>
+                    <br>
+                    <big><p style="color: gray">Заказ: <label id="cost">0.00</label>₽</p></big>
+                    <big><p style="color: gray">Всего: <label id="cost2">0.00</label>₽</p></big>
+                    <button class="btn btn-outline-success" id="btn" onclick="ordered()">&#10003 Заказано</button>
+                    <br>
+                    <div style="height: 25px"></div>
+                </div>
+
+                <div class="col-md-auto">
+                    <div class="card card-body" id="additional" hidden>
+                        <div class="container">
+                            <div style="float: right; cursor: pointer;"
+                                 onclick="document.getElementById('additional').hidden = true">✖
+                            </div>
+                        </div>
+                        <iframe id="iframe" frameborder="false" scrolling="no" width="600px" height="630px"
+                                onload="refresh_selection()"></iframe>
+                        <iframe id="iframe2" frameborder="false" scrolling="no" width="600px" height="630px"
+                                hidden></iframe>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    {% endif %}
 
     <script>
         window.fo = '';
@@ -306,7 +308,6 @@
             mess.innerText = 'Материалы успешно добавлены';
 
             setTimeout(() => { window.location = window.fo ? '/tasks?for_order=' + window.fo : '/tasks'; }, 3000);
-
         }
 
         function filter() {

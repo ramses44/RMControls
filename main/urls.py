@@ -1,4 +1,5 @@
 from django.urls import path
+from django.shortcuts import redirect
 from . import views
 
 urlpatterns = [
@@ -10,7 +11,8 @@ urlpatterns = [
     path('del-material/<int:mid>', views.del_material),
     path('edit-folder/<int:fid>', views.edit_folder),
     path('edit-material/<int:mid>', views.edit_material),
-    path('stock', views.stock),
+    path('stock/<int:page>', views.stock),
+    path('stock', lambda r: redirect('/stock/1')),
     path('add-task/<int:mid>/<str:count>/<str:price>/<str:for_order>', views.add_task, name='add-task'),
     path('create-order/', views.create_order),
     path('create-order/<int:additional>', views.create_order),
@@ -29,7 +31,7 @@ urlpatterns = [
     path('edit-order/<int:oid>/<int:additional>', views.edit_order),
     path('add-to-stock/<int:mid>', views.add_to_stock),
     path('catalog/search/<str:text>', views.catalog_search),
-    path('stock/search/<str:text>', views.stock_search),
+    path('stock/search/<str:text>/<int:page>', views.stock_search),
     path('mark-arrival/<int:mid>/<str:count>/<str:price>', views.mark_arrival),
     path('archive', views.archive),
     path('archive/<int:page>', views.archive),
@@ -39,5 +41,6 @@ urlpatterns = [
     path('archive/search/<str:text>/<int:page>/<int:for_order>', views.archive_search),
     path('orders', views.orders),
     path('api/get-last-price/<int:mid>', views.get_last_price),
-    path('api/order-to-work/<int:oid>', views.order_to_work)
+    path('api/order-to-work/<int:oid>', views.order_to_work),
+    path('api/confirm-order/<int:oid>', views.confirm_order)
 ]
