@@ -30,7 +30,7 @@
             curr = document.getElementsByClassName('remainder' + mid.toString());
 
             for (let i = 0; i < curr.length; i++) {
-                curr[i].innerText = window.remainders[mid].toString();
+                curr[i].innerText = window.remainders[mid].toFixed(2);
             }
         }
 
@@ -230,7 +230,7 @@
                 curr.className = 'uremainder' + mid.toString();
                 curr.innerText = used.toFixed(2);
 
-                window.remainders[mid] -= used;
+                window.remainders[mid] = Math.round(100 * (window.remainders[mid] - used)) / 100;
 
                 refresh_remainders(mid);
             } else {
@@ -239,7 +239,7 @@
                 curr.className = 'remainder' + mid.toString();
                 let used = parseFloat(curr.innerText);
 
-                window.remainders[mid] += used;
+                window.remainders[mid] = Math.round(100 * (window.remainders[mid] + used)) / 100;
 
                 curr = document.getElementById('count_' + eid);
                 curr.placeholder = document.getElementById('need_' + eid).value;

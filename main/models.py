@@ -57,6 +57,11 @@ class Material(models.Model):
     def __str__(self):
         return self.material.title + " - " + str(self.count) + self.material.units
 
+    def save(self, *args, **kwargs):
+        self.count = round(self.count, 2)
+        self.price = round(self.price, 2)
+        super().save(*args, **kwargs)
+
     class Meta:
         verbose_name = "Материал"
         verbose_name_plural = "Склад"
