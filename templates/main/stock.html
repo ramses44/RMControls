@@ -38,6 +38,7 @@
                     </div>
                     <select class="form-control" id="for_order_filter" onchange="filter()">
                         <option value="" selected>Все</option>
+                        <option value="-" {% if for_order_id == '-' %}selected{% endif %}>-</option>
                         {% for opt in orders %}
                             <option value="{{ opt.id }}" {% if opt.id == for_order_id %}selected{% endif %}>№{{ opt.id }}</option>
                         {% endfor %}

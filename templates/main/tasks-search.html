@@ -335,6 +335,15 @@
                 if (!ff.includes(ords[i].className.slice(13)))
                     ff.push(ords[i].className.slice(13));
             }
+
+            ff.sort(function(a, b) {
+                if (a === 'None')
+                    return -1;
+                if (b === 'None')
+                    return 1;
+
+                return a - b;
+            });
             let sel = document.getElementById('for_order_filter');
             let opt;
             for (let i = 0; i < ff.length; i++) {

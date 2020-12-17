@@ -81,7 +81,7 @@ class EditOnStock(Form):
     details = CharField(widget=Textarea({
         'class': 'form-control',
         'style': 'height: 60px; background-color: aliceblue'
-    }), label="Примечание (детали)")
+    }), label="Примечание (детали)", required=False)
 
     price = FloatField(widget=TextInput({
         'class': 'form-control',

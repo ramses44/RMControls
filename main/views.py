@@ -7,7 +7,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
 
-ON_PAGE = 10
+ON_PAGE = 3
 
 
 def superuser_required(func):
@@ -241,12 +241,14 @@ def edit_material(request, mid):
 def stock(request, page=1):
     kw = {}
     if 'for_order' in request.GET:
-        kw['for_order_id'] = int(request.GET['for_order'])
+        kw['for_order_id'] = None if request.GET['for_order'] == '-' else int(request.GET['for_order'])
     if 'status' in request.GET:
         kw['status'] = int(request.GET['status'])
 
     mats = Material.objects.filter(status__in=(0, 1, 2), **kw)
     mats = mats[::-1]
+    if not kw.get('for_order_id', True):
+        kw['for_order_id'] = '-'
 
     return render(request, 'main/stock.html',
                   context={'stock': mats[ON_PAGE * (page - 1):ON_PAGE * page], 'is_last': len(mats) <= ON_PAGE * page,
@@ -264,6 +266,8 @@ def stock_search(request, text, page=1):
 
     mats = Material.objects.filter(status__in=(0, 1, 2), **kw)
     mats = list(filter(lambda x: text.lower() in x.material.title.lower(), mats))[::-1]
+    if not kw.get('for_order_id', True):
+        kw['for_order_id'] = '-'
 
     return render(request, 'main/stock-search.html', context={
         'stock': mats[ON_PAGE * (page - 1):ON_PAGE * page], 'is_last': len(mats) <= ON_PAGE * page,
