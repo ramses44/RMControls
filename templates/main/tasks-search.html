@@ -298,7 +298,7 @@
                     id_ = checkboxes[i].id.slice(11);
                     let data = {
                         count: document.getElementById('count_' + id_).value,
-                        remainder_used: document.getElementById('rem' + id_) ? document.getElementById('rem' + id_).innerText : 0,
+                        remainder_used: document.getElementById('do_use_remainder_' + id_).checked ? document.getElementById('rem' + id_).innerText : 0,
                         for_order: document.getElementById('for_order').value,
                         price: document.getElementById('price_' + id_).value,
                         details: document.getElementById('details').value

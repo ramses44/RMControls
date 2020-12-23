@@ -64,7 +64,7 @@ class EditOnStock(Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['for_order'].choices = [(None, '-')] + [(x.id, '№' + x.id.__str__()) for x
-                                                            in Order.objects.filter(status=0)]
+                                                            in Order.objects.filter(status__in=(0, 1, 2, ))]
 
     for_order = ChoiceField(widget=Select({
         'class': 'form-control',

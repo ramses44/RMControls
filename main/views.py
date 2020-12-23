@@ -7,7 +7,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.contrib.auth.decorators import login_required
 from django.forms.models import model_to_dict
 
-ON_PAGE = 3
+ON_PAGE = 10
 
 
 def superuser_required(func):
@@ -76,8 +76,8 @@ def join_materials(mid):
 
     for i, m1 in enumerate(mats):
         for m2 in mats[i + 1:]:
-            if m1.price == m2.price and m1.details == m2.details and \
-                    m1.for_order == m2.for_order and m1.status == m2.status:
+            if m1.details == m2.details and m1.for_order == m2.for_order and m1.status == m2.status:
+                m1.price = round((m1.count * m1.price + m2.count * m2.price) / (m1.count + m2.count), 2)
                 m1.count += m2.count
                 m2.delete()
                 m1.save()
@@ -391,6 +391,10 @@ def create_order(request, additional=0):
 
 @xframe_options_exempt
 def order(request, oid, additional=0):
+    try:
+        oid = int(oid)
+    except ValueError:
+        return HttpResponseBadRequest()
     o = Order.objects.get(id=oid)
     return render(request, 'main/order.html', context={
         'title': f'Заказ №{oid}', 'order': o, 'additional': additional,
@@ -599,3 +603,6 @@ def confirm_order(request, oid: int):
 
 def test(request):
     return HttpResponseBadRequest()
+
+
+
