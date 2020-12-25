@@ -68,7 +68,8 @@ def get_order_list(request):
 
 
 def get_last_price(request, mid):
-    return HttpResponse(AbsMaterial.objects.get(id=mid).get_last_price())
+    m = AbsMaterial.objects.get(id=mid)
+    return HttpResponse(m.get_last_price())
 
 
 def join_materials(mid):
@@ -603,6 +604,3 @@ def confirm_order(request, oid: int):
 
 def test(request):
     return HttpResponseBadRequest()
-
-
-
