@@ -27,8 +27,8 @@ urlpatterns = [
     path('api/get-order-list', views.get_order_list),
     path('order/<str:oid>', views.order),
     path('order/<str:oid>/<int:additional>', views.order),
-    path('edit-order/<int:oid>', views.edit_order),
-    path('edit-order/<int:oid>/<int:additional>', views.edit_order),
+    path('edit-order/<str:oid>', views.edit_order),
+    path('edit-order/<str:oid>/<int:additional>', views.edit_order),
     path('add-to-stock/<int:mid>', views.add_to_stock),
     path('catalog/search/<str:text>', views.catalog_search),
     path('stock/search/<str:text>/<int:page>', views.stock_search),
@@ -41,6 +41,6 @@ urlpatterns = [
     path('archive/search/<str:text>/<int:page>/<int:for_order>', views.archive_search),
     path('orders', views.orders),
     path('api/get-last-price/<int:mid>', views.get_last_price),
-    path('api/order-to-work/<int:oid>', views.order_to_work),
-    path('api/confirm-order/<int:oid>', views.confirm_order)
+    path('api/order-to-work/<str:oid>', views.order_to_work),
+    path('api/confirm-order/<str:oid>', views.confirm_order)
 ]

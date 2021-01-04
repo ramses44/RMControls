@@ -487,6 +487,7 @@ def tasks_search(request, text):
 @xframe_options_exempt
 @login_required
 def edit_order(request, oid, additional=0):
+    oid = int(oid)
     res = None
     ad = ''
     o = Order.objects.get(id=oid)
@@ -574,7 +575,8 @@ def orders(request):
 
 
 @login_required
-def order_to_work(request, oid: int):
+def order_to_work(request, oid):
+    oid = int(oid)
     mats = Material.objects.filter(for_order_id=oid, status=1)
 
     if mats:
@@ -590,7 +592,8 @@ def order_to_work(request, oid: int):
 
 
 @login_required
-def confirm_order(request, oid: int):
+def confirm_order(request, oid):
+    oid = int(oid)
     for mat in Material.objects.filter(for_order_id=oid, status=2):
         mat.status = 3
         mat.save()
