@@ -261,7 +261,7 @@ def stock(request, page=1):
 def stock_search(request, text, page=1):
     kw = {}
     if 'for_order' in request.GET:
-        kw['for_order_id'] = int(request.GET['for_order'])
+        kw['for_order_id'] = None if request.GET['for_order'] == '-' else int(request.GET['for_order'])
     if 'status' in request.GET:
         kw['status'] = int(request.GET['status'])
 
@@ -571,7 +571,8 @@ def mark_arrival(request, mid, count, price):
 
 
 def orders(request):
-    return render(request, 'main/orders.html', context={'title': 'Все заказы', 'orders': Order.objects.all()})
+    return render(request, 'main/orders.html',
+                  context={'title': 'Все заказы', 'orders': Order.objects.filter(status__in=(0, 1,))})
 
 
 @login_required
