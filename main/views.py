@@ -282,7 +282,11 @@ def stock_search(request, text, page=1):
 
 
 def archive(request, page=1, for_order=None):
-    mats = Material.objects.filter(status=3, for_order_id=for_order) if for_order else Material.objects.filter(status=3)
+    if for_order:
+        for_order = int(for_order) if for_order != '-' else None
+        mats = Material.objects.filter(status=3, for_order_id=for_order)
+    else:
+        mats = Material.objects.filter(status=3)
     mats = mats[::-1]
 
     return render(request, 'main/archive.html', context={
@@ -291,7 +295,11 @@ def archive(request, page=1, for_order=None):
 
 
 def archive_search(request, text, page=1, for_order=None):
-    mats = Material.objects.filter(status=3, for_order_id=for_order) if for_order else Material.objects.filter(status=3)
+    if for_order:
+        for_order = int(for_order) if for_order != '-' else None
+        mats = Material.objects.filter(status=3, for_order_id=for_order)
+    else:
+        mats = Material.objects.filter(status=3)
     mats = list(filter(lambda x: text.lower() in x.material.title.lower(), mats))[::-1]
 
     return render(request, 'main/archive-search.html', context={
@@ -572,7 +580,7 @@ def mark_arrival(request, mid, count, price):
 
 def orders(request):
     return render(request, 'main/orders.html',
-                  context={'title': 'Все заказы', 'orders': Order.objects.filter(status__in=(0, 1,))})
+                  context={'title': 'Все заказы', 'orders': Order.objects.all()})
 
 
 @login_required

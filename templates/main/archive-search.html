@@ -77,20 +77,29 @@
                 }
             </style>
             {% if page > 1 %}
-                <a class="btn btn-outline-secondary my-btn" href="/archive/search/{{ text }}/{{ page|add:-1 }}"><</a>
-                <a class="btn btn-outline-secondary my-btn" href="/archive/search/{{ text }}/{{ page|add:-1 }}">{{ page|add:-1 }}</a>
+                <a class="btn btn-outline-secondary my-btn" onclick="to_page({{ page|add:-1 }})"><</a>
+                <a class="btn btn-outline-secondary my-btn" onclick="to_page({{ page|add:-1 }})">{{ page|add:-1 }}</a>
             {% endif %}
-            <a class="btn btn-outline-secondary my-btn disabled" href="/archive/search/{{ text }}/{{ page }}">{{ page }}</a>
+            <a class="btn btn-outline-secondary my-btn disabled" onclick="to_page({{ page }})">{{ page }}</a>
             {% if not is_last %}
-                <a class="btn btn-outline-secondary my-btn disabled" href="/archive/search/{{ text }}/{{ page }}">...</a>
-                <a class="btn btn-outline-secondary my-btn" href="/archive/search/{{ text }}/{{ page|add:+1 }}">{{ page|add:+1 }}</a>
-                <a class="btn btn-outline-secondary my-btn" href="/archive/search/{{ text }}/{{ page|add:+1 }}">></a>
+                <a class="btn btn-outline-secondary my-btn disabled" onclick="to_page({{ page }})">...</a>
+                <a class="btn btn-outline-secondary my-btn" onclick="to_page({{ page|add:+1 }})">{{ page|add:+1 }}</a>
+                <a class="btn btn-outline-secondary my-btn" onclick="to_page({{ page|add:+1 }})">></a>
             {% endif %}
 
         </div>
     </div>
 
     <script>
+
+        function to_page(page) {
+            let fo = document.getElementById('for_order_filter').value;
+
+            if (fo)
+                window.location = '/archive/search/{{ text }}/' + page.toString() + (fo ? '/' + fo : '');
+            else
+                window.location = '/archive/search/{{ text }}/' + page.toString();
+        }
 
         function filter() {
             let for_order = document.getElementById('for_order_filter').value;

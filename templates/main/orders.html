@@ -48,11 +48,18 @@
                 all_orders[i].hidden = false;
 
             let status = document.getElementById('status_filter').value;
-            if (status)
-                for (let i = 0; i < all_orders.length; i ++)
+            if (status) {
+                for (let i = 0; i < all_orders.length; i++)
                     if (all_orders[i].firstElementChild.textContent !== status)
                         all_orders[i].hidden = true;
+            }
+            else {
+                for (let i = 0; i < all_orders.length; i++)
+                    if (all_orders[i].firstElementChild.textContent === '2')
+                        all_orders[i].hidden = true;
+            }
         }
+        filter();
     </script>
 
 {% endblock %}
